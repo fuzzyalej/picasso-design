@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Superpowers / agent workflow artifacts (internal, not part of the plugin)
+.superpowers/
+docs/superpowers/
+
+# Session memory
+.remember/

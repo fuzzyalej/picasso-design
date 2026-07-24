@@ -1,0 +1,9 @@
+[project]
+name = "picasso-dev"
+version = "0.1.0"
+description = "Dev tooling and tests for the picasso plugin."
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["scripts"]
