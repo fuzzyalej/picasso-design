@@ -17,4 +17,9 @@ When these files exist, they override any inference. Do not improvise values tha
 
 **Review:** run `picasso:review` to audit screens and copy against these files.
 
-**Visual review:** open `design-system/styleguide.html` and `design-system/brandbook.html` in a browser.
+**Visual review:** open `design-system/design_system.html` and `design-system/brandbook.html` in a browser.
+
+Compose UI from `components.css` (import it after `tokens.css`); do not re-declare
+component styles inline. See the whole system in `design_system.html`. All UI must
+meet WCAG AA: real focus states, semantic markup, image alt text, and contrast that
+passes the review.

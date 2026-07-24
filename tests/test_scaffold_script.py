@@ -52,3 +52,25 @@ def test_wire_claude_md_preserves_existing_content(tmp_path):
     text = (tmp_path / "CLAUDE.md").read_text()
     assert "Existing notes." in text
     assert "design-system/design-instructions.md" in text
+
+def test_scaffold_includes_new_artifacts_not_styleguide():
+    assert "components.css" in S.TEMPLATE_FILES
+    assert "design_system.html" in S.TEMPLATE_FILES
+    assert "styleguide.html" not in S.TEMPLATE_FILES
+
+def test_wire_gitignore_adds_picasso_dir_idempotently(tmp_path):
+    p = S.wire_gitignore(str(tmp_path), "design-system")
+    from pathlib import Path
+    first = Path(p).read_text()
+    S.wire_gitignore(str(tmp_path), "design-system")
+    second = Path(p).read_text()
+    assert first == second
+    assert "design-system/.picasso/" in first
+
+def test_wire_gitignore_preserves_existing(tmp_path):
+    from pathlib import Path
+    (tmp_path / ".gitignore").write_text("node_modules/\n")
+    S.wire_gitignore(str(tmp_path), "design-system")
+    text = (tmp_path / ".gitignore").read_text()
+    assert "node_modules/" in text
+    assert "design-system/.picasso/" in text

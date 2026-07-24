@@ -66,3 +66,23 @@ def test_review_paths_dedupes_file_and_its_dir(tmp_path):
     results = R.review_paths([str(tmp_path), str(bad)], str(tmp_path / "tokens.css"))
     undef = [(_p, f) for _p, f in results if f.rule == "undefined-token" and _p.endswith("bad.html")]
     assert len(undef) == 1
+
+
+def test_contrast_findings_flags_low_pair():
+    from picasso_review import contrast_findings
+    tokens = {"color-text": "#aaaaaa", "color-bg": "#ffffff"}
+    rules = {f.rule for f in contrast_findings(tokens)}
+    assert "contrast" in rules
+
+
+def test_contrast_findings_passes_good_pair():
+    from picasso_review import contrast_findings
+    tokens = {"color-text": "#18181b", "color-bg": "#ffffff",
+              "color-accent": "#2563eb", "color-accent-contrast": "#ffffff"}
+    assert contrast_findings(tokens) == []
+
+
+def test_contrast_findings_skips_unparsable_or_missing():
+    from picasso_review import contrast_findings
+    assert contrast_findings({"color-text": "var(--x)", "color-bg": "#fff"}) == []
+    assert contrast_findings({}) == []

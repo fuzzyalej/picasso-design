@@ -6,6 +6,7 @@
   <title>Demo: Landing</title>
   <style>
     @import "../tokens.css";
+    @import "../components.css";
     body { margin: 0; font-family: var(--font-sans); color: var(--color-text);
            background: var(--color-bg); line-height: var(--line-body); }
     .wrap { max-width: var(--size-content); margin: 0 auto; padding: var(--space-12) var(--space-6); }
@@ -14,18 +15,6 @@
          letter-spacing: var(--tracking-tight); max-width: var(--size-prose); }
     .lead { font-size: var(--font-size-lg); color: var(--color-text-muted); max-width: var(--size-prose); }
     .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
-    .card { border: 1px solid var(--color-border); border-radius: var(--radius-lg);
-            padding: var(--space-6); background: var(--color-surface); }
-    /* Loading skeleton: mirrors the card layout it replaces. */
-    .skeleton { border-radius: var(--radius-sm); background: var(--color-border);
-                animation: pulse var(--duration-slow) var(--ease-in-out) infinite alternate; }
-    .skeleton.line { height: 12px; margin-block: var(--space-2); }
-    @keyframes pulse { to { opacity: 0.45; } }
-    @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
-    .empty-state, .error-state { border: 1px dashed var(--color-border);
-      border-radius: var(--radius-lg); padding: var(--space-12); text-align: center;
-      color: var(--color-text-muted); }
-    .error-state { border-color: var(--color-danger); color: var(--color-danger); }
   </style>
 </head>
 <body>

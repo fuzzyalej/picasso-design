@@ -58,6 +58,12 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Component support */
+  --color-accent-weak: #dbeafe;   /* accent tint for hover/selected backgrounds */
+  --color-overlay: rgba(24, 24, 27, 0.5);  /* modal scrim */
+  --shadow-lg: 0 12px 32px rgba(24, 24, 27, 0.14);
+  --focus-ring: 0 0 0 3px var(--color-accent-weak);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -67,5 +73,7 @@
     --color-border: #27272a;
     --color-text: #f4f4f5;
     --color-text-muted: #a1a1aa;
+    --color-accent-weak: #1e3a5f;
+    --color-overlay: rgba(0, 0, 0, 0.6);
   }
 }

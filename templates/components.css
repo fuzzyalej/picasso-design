@@ -1,0 +1,89 @@
+/* components.css: semantic classes composed only from tokens.css.
+   Import tokens.css before this file. Never inline raw values here;
+   every value is a var(--...). Every component ships accessible:
+   semantic markup, visible focus, AA contrast, 44px tap targets. */
+@import "tokens.css";
+
+/* Actions */
+.btn {
+  font: inherit; display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2); min-height: var(--size-tap);
+  padding: var(--space-2) var(--space-4); border: 1px solid transparent;
+  border-radius: var(--radius-md); background: var(--color-accent);
+  color: var(--color-accent-contrast); cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn--ghost { background: transparent; color: var(--color-text); border-color: var(--color-border); }
+.btn--danger { background: var(--color-danger); color: var(--color-accent-contrast); }
+@media (prefers-reduced-motion: reduce) { .btn { transition-duration: 1ms; } }
+
+/* Forms */
+.field { display: flex; flex-direction: column; gap: var(--space-2); margin-block: var(--space-4); }
+.label { font-size: var(--font-size-sm); color: var(--color-text); }
+.input, .select, .textarea {
+  font: inherit; min-height: var(--size-tap); padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-bg); color: var(--color-text);
+}
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible {
+  outline: none; box-shadow: var(--focus-ring); border-color: var(--color-accent);
+}
+.field.is-invalid .input { border-color: var(--color-danger); }
+.field .hint { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+.field.is-invalid .hint { color: var(--color-danger); }
+
+/* Data */
+.table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+.table th, .table td { text-align: left; padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
+.table th { color: var(--color-text-muted); font-weight: 600; }
+.badge {
+  display: inline-flex; align-items: center; padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill); font-size: var(--font-size-xs);
+  background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border);
+}
+
+/* Containers */
+.card, .panel {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-6); background: var(--color-surface);
+}
+
+/* Overlays */
+.scrim {
+  position: fixed; inset: 0; background: var(--color-overlay);
+  display: grid; place-items: center; padding: var(--space-6);
+}
+.modal {
+  max-width: var(--size-prose); width: 100%; background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); padding: var(--space-8);
+}
+
+/* Navigation */
+.nav { display: flex; gap: var(--space-4); align-items: center; }
+.nav a { color: var(--color-text-muted); text-decoration: none; padding: var(--space-2); border-radius: var(--radius-sm); }
+.nav a[aria-current="page"] { color: var(--color-text); }
+.nav a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.tabs { display: flex; gap: var(--space-2); border-bottom: 1px solid var(--color-border); }
+.tabs button { font: inherit; background: none; border: none; padding: var(--space-3); cursor: pointer; color: var(--color-text-muted); min-height: var(--size-tap); }
+.tabs button[aria-selected="true"] { color: var(--color-text); box-shadow: inset 0 -2px 0 var(--color-accent); }
+.tabs button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Feedback */
+.alert { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); background: var(--color-surface); }
+.alert--danger { border-color: var(--color-danger); color: var(--color-danger); }
+.alert--success { border-color: var(--color-success); color: var(--color-success); }
+.skeleton { border-radius: var(--radius-sm); background: var(--color-border);
+  animation: pc-pulse var(--duration-slow) var(--ease-in-out) infinite alternate; }
+.skeleton.line { height: 12px; margin-block: var(--space-2); }
+@keyframes pc-pulse { to { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+.empty-state, .error-state {
+  border: 1px dashed var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-12); text-align: center; color: var(--color-text-muted);
+}
+.error-state { border-color: var(--color-danger); color: var(--color-danger); }

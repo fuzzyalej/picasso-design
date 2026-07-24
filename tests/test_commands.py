@@ -24,7 +24,8 @@ def test_init_review_no_dashes():
         text = (CMD / name).read_text()
         assert "—" not in text and "–" not in text
 
-EXPECTED_COMMANDS = {"init.md", "review.md", "brandbook.md", "system.md", "tokens.md", "demo.md"}
+EXPECTED_COMMANDS = {"init.md", "review.md", "brandbook.md", "system.md",
+                     "tokens.md", "demo.md", "components.md", "showcase.md"}
 
 def test_all_six_commands_present_valid_and_dashfree():
     found = {p.name for p in CMD.glob("*.md")}
@@ -35,5 +36,5 @@ def test_all_six_commands_present_valid_and_dashfree():
         assert "—" not in text and "–" not in text, f"{name} has a dash"
 
 def test_alacarte_commands_run_review():
-    for name in ("brandbook.md", "system.md", "tokens.md", "demo.md"):
+    for name in ("brandbook.md", "system.md", "tokens.md", "demo.md", "components.md", "showcase.md"):
         assert "picasso_review.py" in (CMD / name).read_text()

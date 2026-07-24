@@ -9,7 +9,8 @@ from picasso_engine.claude_md import upsert_managed_block  # noqa: E402
 
 TEMPLATE_FILES = [
     "tokens.css",
-    "styleguide.html",
+    "components.css",
+    "design_system.html",
     "brandbook.html",
     "design.md",
     "brandbook.md",
@@ -53,6 +54,22 @@ def wire_claude_md(project_dir, folder_name):
     return path
 
 
+def wire_gitignore(project_dir, folder_name):
+    path = os.path.join(project_dir, ".gitignore")
+    entry = f"{folder_name}/.picasso/"
+    existing = ""
+    if os.path.isfile(path):
+        with open(path, "r", encoding="utf-8") as fh:
+            existing = fh.read()
+    lines = existing.splitlines()
+    if entry not in lines:
+        prefix = existing if existing.endswith("\n") or existing == "" else existing + "\n"
+        existing = prefix + entry + "\n"
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(existing)
+    return path
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(prog="picasso-scaffold")
@@ -63,6 +80,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     written = scaffold(args.project, args.folder, args.templates, args.force)
     wire_claude_md(args.project, args.folder)
+    wire_gitignore(args.project, args.folder)
     print(f"picasso: wrote {len(written)} file(s) into {args.folder}/ and wired CLAUDE.md.")
     for rel in written:
         print(f"  + {args.folder}/{rel}")

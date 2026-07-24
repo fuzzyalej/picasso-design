@@ -28,3 +28,6 @@ def test_demo_not_sloppy():
 def test_demo_no_em_or_en_dash():
     text = DEMO.read_text()
     assert "—" not in text and "–" not in text
+
+def test_demo_imports_components():
+    assert "components.css" in DEMO.read_text()

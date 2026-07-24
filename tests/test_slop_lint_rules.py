@@ -68,3 +68,25 @@ def test_fake_metric_ignores_truthful_decimal_percent():
 def test_purple_gradient_with_nested_rgba_stop():
     css = ".h{background:linear-gradient(180deg, rgba(0,0,0,.2), purple);}"
     assert "purple-gradient" in rules(lint(css, "css"))
+
+def test_flags_img_without_alt():
+    assert "img-alt" in rules(lint('<img src="x.png">', "html"))
+
+def test_img_with_alt_ok():
+    assert "img-alt" not in rules(lint('<img src="x.png" alt="A cat">', "html"))
+    assert "img-alt" not in rules(lint('<img src="x.png" alt="">', "html"))
+
+def test_flags_focus_removed_without_focus_visible():
+    css = ".btn{outline:none;}"
+    assert "focus-removed" in rules(lint(css, "css"))
+
+def test_focus_removed_ok_when_focus_visible_present():
+    css = ".btn{outline:none;} .btn:focus-visible{outline:2px solid blue;}"
+    assert "focus-removed" not in rules(lint(css, "css"))
+
+def test_flags_clickable_nonsemantic_div():
+    assert "clickable-nonsemantic" in rules(lint('<div onclick="go()">Go</div>', "html"))
+
+def test_clickable_ok_with_role():
+    html = '<div role="button" tabindex="0" onclick="go()">Go</div>'
+    assert "clickable-nonsemantic" not in rules(lint(html, "html"))

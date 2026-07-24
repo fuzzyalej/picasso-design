@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Design System</title>
+  <style>
+    @import "tokens.css";
+    @import "components.css";
+    body { margin: 0; font-family: var(--font-sans); color: var(--color-text);
+           background: var(--color-bg); line-height: var(--line-body); }
+    .wrap { max-width: var(--size-content); margin: 0 auto; padding: var(--space-12) var(--space-6); }
+    h1 { font-size: var(--font-size-2xl); letter-spacing: var(--tracking-tight); line-height: var(--line-tight); }
+    h2 { font-size: var(--font-size-lg); margin-top: var(--space-16); }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+    .swatch { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+    .swatch .chip { height: 64px; }
+    .swatch .name { padding: var(--space-2); font-family: var(--font-mono); font-size: var(--font-size-xs); }
+    .row { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
+    .matrix { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+    .matrix th, .matrix td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }
+    .pass { color: var(--color-success); }
+    .fail { color: var(--color-danger); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Design system</h1>
+    <p>The whole system on one page: brand, palette, type, values, components, and contrast. Rendered live from <code>tokens.css</code> and <code>components.css</code>. Fix the token, not this page.</p>
+
+    <h2>Brand</h2>
+    <div class="card">
+      <p><strong>Mission.</strong> Replace this with the project mission in one plain sentence.</p>
+      <p><strong>Personality.</strong> Roughly five honest words go here.</p>
+    </div>
+
+    <h2>Values</h2>
+    <div class="grid-3">
+      <div class="card"><h3>Value one</h3><p>One sentence on what it means in practice.</p></div>
+      <div class="card"><h3>Value two</h3><p>One sentence on what it means in practice.</p></div>
+      <div class="card"><h3>Value three</h3><p>One sentence on what it means in practice.</p></div>
+    </div>
+
+    <h2>Palette</h2>
+    <div class="grid">
+      <div class="swatch"><div class="chip" style="background:var(--color-accent)"></div><div class="name">--color-accent</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--color-text)"></div><div class="name">--color-text</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--color-surface)"></div><div class="name">--color-surface</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--color-border)"></div><div class="name">--color-border</div></div>
+    </div>
+
+    <h2>Typography</h2>
+    <p style="font-size:var(--font-size-2xl)">Display, the largest step.</p>
+    <p style="font-size:var(--font-size-xl)">Heading, the section step.</p>
+    <p style="font-size:var(--font-size-md)">Body, the reading size.</p>
+    <p style="font-size:var(--font-size-sm);color:var(--color-text-muted)">Small, muted supporting text.</p>
+
+    <h2>Buttons</h2>
+    <div class="row">
+      <button class="btn">Primary action</button>
+      <button class="btn btn--ghost">Secondary action</button>
+      <button class="btn btn--danger">Destructive action</button>
+      <button class="btn" disabled>Unavailable action</button>
+    </div>
+
+    <h2>Form</h2>
+    <div class="field">
+      <label class="label" for="ds-email">Email</label>
+      <input class="input" id="ds-email" type="email" placeholder="you@example.com">
+      <span class="hint">We only use this to reach you.</span>
+    </div>
+    <div class="field is-invalid">
+      <label class="label" for="ds-name">Name</label>
+      <input class="input" id="ds-name" type="text" aria-invalid="true">
+      <span class="hint">This field is required.</span>
+    </div>
+
+    <h2>Table</h2>
+    <table class="table">
+      <thead><tr><th>Item</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>First row</td><td><span class="badge">Active</span></td></tr>
+        <tr><td>Second row</td><td><span class="badge">Paused</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Modal</h2>
+    <div class="scrim" style="position:static">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ds-modal-title">
+        <h3 id="ds-modal-title">Confirm change</h3>
+        <p>A short, plain description of what happens next.</p>
+        <div class="row"><button class="btn">Confirm change</button><button class="btn btn--ghost">Cancel change</button></div>
+      </div>
+    </div>
+
+    <h2>Feedback and states</h2>
+    <div class="alert alert--success">Saved. Your changes are live.</div>
+    <div class="grid-3" style="margin-top:var(--space-4)">
+      <div class="card"><div class="skeleton line" style="width:60%"></div><div class="skeleton line"></div></div>
+      <div class="empty-state">Nothing here yet.</div>
+      <div class="error-state">We could not load this. Try again.</div>
+    </div>
+
+    <h2>Contrast</h2>
+    <table class="matrix" id="ds-contrast">
+      <thead><tr><th>Foreground</th><th>Background</th><th>Ratio</th><th>AA</th></tr></thead>
+      <tbody>
+        <tr data-fg="--color-text" data-bg="--color-bg"><td>--color-text</td><td>--color-bg</td><td></td><td></td></tr>
+        <tr data-fg="--color-text" data-bg="--color-surface"><td>--color-text</td><td>--color-surface</td><td></td><td></td></tr>
+        <tr data-fg="--color-text-muted" data-bg="--color-bg"><td>--color-text-muted</td><td>--color-bg</td><td></td><td></td></tr>
+        <tr data-fg="--color-accent-contrast" data-bg="--color-accent"><td>--color-accent-contrast</td><td>--color-accent</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    (function () {
+      var css = getComputedStyle(document.documentElement);
+      function rgb(v) {
+        var el = document.createElement('span');
+        el.style.color = v; document.body.appendChild(el);
+        var m = getComputedStyle(el).color.match(/\d+/g);
+        document.body.removeChild(el);
+        return m ? m.slice(0, 3).map(Number) : null;
+      }
+      function lum(c) {
+        var a = c.map(function (x) {
+          x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+      }
+      function ratio(f, b) {
+        var lf = lum(f), lb = lum(b), hi = Math.max(lf, lb), lo = Math.min(lf, lb);
+        return (hi + 0.05) / (lo + 0.05);
+      }
+      document.querySelectorAll('#ds-contrast tbody tr').forEach(function (tr) {
+        var f = rgb(css.getPropertyValue(tr.dataset.fg).trim());
+        var b = rgb(css.getPropertyValue(tr.dataset.bg).trim());
+        if (!f || !b) return;
+        var r = ratio(f, b), cells = tr.querySelectorAll('td');
+        cells[2].textContent = r.toFixed(1) + ':1';
+        var ok = r >= 4.5;
+        cells[3].textContent = ok ? 'Pass' : 'Fail';
+        cells[3].className = ok ? 'pass' : 'fail';
+      });
+    })();
+  </script>
+</body>
+</html>

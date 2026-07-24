@@ -75,6 +75,12 @@ GRID_COLS = re.compile(r"grid-template-columns\s*:\s*([^;}]+)", re.IGNORECASE)
 CTA_TAG = re.compile(r"<(a|button)\b([^>]*)>(.*?)</\1>", re.IGNORECASE | re.DOTALL)
 TAG_STRIP = re.compile(r"<[^>]+>")
 CTA_CLASS = re.compile(r"class\s*=\s*[\"'][^\"']*(?:btn|cta|button)", re.IGNORECASE)
+IMG_TAG = re.compile(r"<img\b([^>]*)>", re.IGNORECASE)
+ALT_ATTR = re.compile(r"\balt\s*=", re.IGNORECASE)
+OUTLINE_NONE = re.compile(r"outline\s*:\s*(?:none|0)\b", re.IGNORECASE)
+FOCUS_VISIBLE = re.compile(r":focus-visible", re.IGNORECASE)
+CLICKABLE_NONSEMANTIC = re.compile(r"<(?:div|span)\b[^>]*\bonclick\s*=[^>]*>", re.IGNORECASE)
+ROLE_ATTR = re.compile(r"\brole\s*=", re.IGNORECASE)
 
 
 def _check_purple_gradient(content: str, kind: str):
@@ -147,10 +153,46 @@ def _check_duplicate_cta(content: str, kind: str):
                           1, text)
 
 
+def _check_img_alt(content: str, kind: str):
+    if kind != "html":
+        return
+    for i, line in enumerate(_lines(content), 1):
+        for m in IMG_TAG.finditer(line):
+            if not ALT_ATTR.search(m.group(1)):
+                yield Finding("img-alt", "warn",
+                              'Image without alt. Add alt text, or alt="" if decorative.',
+                              i, line.strip())
+
+
+def _check_focus_removed(content: str, kind: str):
+    if kind == "copy":
+        return
+    if FOCUS_VISIBLE.search(content):
+        return
+    for i, line in enumerate(_lines(content), 1):
+        if OUTLINE_NONE.search(line):
+            yield Finding("focus-removed", "warn",
+                          "Focus outline removed with no :focus-visible replacement.",
+                          i, line.strip())
+
+
+def _check_clickable_nonsemantic(content: str, kind: str):
+    if kind != "html":
+        return
+    for i, line in enumerate(_lines(content), 1):
+        for m in CLICKABLE_NONSEMANTIC.finditer(line):
+            if not ROLE_ATTR.search(m.group(0)):
+                yield Finding("clickable-nonsemantic", "info",
+                              "Clickable div/span without a role. Use a button/link, "
+                              "or add role plus keyboard support.",
+                              i, line.strip())
+
+
 _CORE_RULES = [
     _check_dash, _check_pure_black, _check_inline_hex,
     _check_purple_gradient, _check_eyebrow_overuse, _check_fake_metric,
     _check_grid_1fr, _check_duplicate_cta,
+    _check_img_alt, _check_focus_removed, _check_clickable_nonsemantic,
 ]
 
 

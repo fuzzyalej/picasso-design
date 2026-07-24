@@ -32,7 +32,7 @@ def test_tokens_skill_covers_taxonomy_and_precedence():
     for marker in ("var(--", "precedence", "9-section", "source of truth"):
         assert marker in text
 
-ALL_SKILLS = ("taste", "brand", "tokens-and-system", "motion", "unslop-copy")
+ALL_SKILLS = ("taste", "brand", "tokens-and-system", "motion", "unslop-copy", "accessibility", "components")
 
 def test_all_five_skills_present_valid_and_dashfree():
     for name in ALL_SKILLS:
@@ -50,4 +50,28 @@ def test_motion_covers_transform_and_reduced_motion():
 def test_unslop_covers_three_levels():
     text = _skill("unslop-copy")
     for marker in ("Level 1", "Level 2", "Level 3", "Outline test"):
+        assert marker in text
+
+def test_accessibility_skill_valid_and_dashfree():
+    text = _skill("accessibility")
+    fm = parse_frontmatter(text)
+    assert fm.get("name") == "accessibility"
+    assert fm.get("description")
+    assert "—" not in text and "–" not in text
+
+def test_accessibility_covers_core_topics():
+    text = _skill("accessibility").lower()
+    for marker in ("wcag", "contrast", "focus-visible", "keyboard", "aria", "reduced-motion"):
+        assert marker in text
+
+def test_components_skill_valid_and_dashfree():
+    text = _skill("components")
+    fm = parse_frontmatter(text)
+    assert fm.get("name") == "components"
+    assert fm.get("description")
+    assert "—" not in text and "–" not in text
+
+def test_components_skill_covers_layer_rules():
+    text = _skill("components").lower()
+    for marker in ("components.css", "var(--", "semantic", "focus-visible"):
         assert marker in text

@@ -14,14 +14,29 @@
 | `fake-metric` | warn | html, copy | Marketing metrics like "+47% conversion", "trusted by 50,000", "99.9%". |
 | `grid-1fr` | info | html, css | `grid-template-columns` using `1fr` instead of `minmax(0, 1fr)`. |
 | `duplicate-cta` | info | html | The same button or link label repeated across CTA-classed elements. |
+| `img-alt` | warn | html | An `<img>` with no `alt` attribute. Add alt text, or `alt=""` if decorative. |
+| `focus-removed` | warn | html, css | A bare `outline: none`/`outline: 0` with no `:focus-visible` replacement anywhere in the file. |
+| `clickable-nonsemantic` | info | html | A `div`/`span` carrying a click handler with no `role` attribute; use a real button or link, or add a role plus keyboard support. |
 
-The `picasso_review.py` reviewer adds two structural checks for HTML and CSS on top of the lint rules:
+The `picasso_review.py` reviewer adds structural checks on top of the lint rules:
 
 | Rule | Severity | Flags |
 | --- | --- | --- |
 | `external-dep` | warn | Any external reference (`http(s)://`, protocol-relative `//`, `@import`, or `srcset`) to a non-local host. |
 | `undefined-token` | warn | A `var(--x)` reference not defined in the project's `tokens.css`. |
 | `missing-path` | warn | A path passed to the reviewer that does not exist (guards against a typo reporting "clean"). |
+| `contrast` | warn | A conventional token pair (`--color-text`/`--color-bg`, `--color-text`/`--color-surface`, `--color-text-muted`/`--color-bg`, `--color-accent-contrast`/`--color-accent`) that fails WCAG AA (below 4.5:1). |
+
+## Contrast (`picasso_engine/contrast.py`)
+
+Pure Python WCAG contrast math, no third-party dependency.
+
+- `parse_color(value) -> (r, g, b) | None` parses a hex color (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`) or an `rgb()`/`rgba()` string into an 0 to 255 RGB tuple. Returns `None` if the value does not parse.
+- `relative_luminance(rgb) -> float` computes the WCAG relative luminance of an RGB tuple.
+- `contrast_ratio(fg, bg) -> float | None` computes the WCAG contrast ratio between two color strings, or `None` if either fails to parse.
+- `passes_aa(fg, bg, large=False) -> bool | None` returns whether the pair clears WCAG AA: 4.5:1 for normal text, 3.0:1 when `large=True` (large text or UI components), or `None` if unparsable.
+
+`picasso_review.py` uses these to audit a fixed list of conventional token pairs (see the `contrast` rule above) every time it runs against a directory or file with a `--tokens` reference; a failing pair reports its actual ratio.
 
 ## Token taxonomy
 
@@ -64,7 +79,7 @@ python3 scripts/picasso_review.py [path ...] [--tokens PATH]
 ```
 
 - `path` defaults to `design-system`. Directories are walked for `.html`, `.htm`, `.css`, `.md` files.
-- `--tokens` points at the `tokens.css` used for `undefined-token` checks. If omitted, it auto-detects `tokens.css` under the first path, then `design-system/tokens.css`.
+- `--tokens` points at the `tokens.css` used for `undefined-token` and `contrast` checks. If omitted, it auto-detects `tokens.css` under the first path, then `design-system/tokens.css`.
 - Always exits 0. Prints a report grouped by file, or a clean message.
 
 ### `picasso_scaffold.py`
@@ -73,9 +88,22 @@ python3 scripts/picasso_review.py [path ...] [--tokens PATH]
 python3 scripts/picasso_scaffold.py --project . --dir design-system --templates <templates-dir> [--force]
 ```
 
-- Copies the seven template files into `<project>/<dir>/`, creating directories.
+- Copies the template files (`tokens.css`, `components.css`, `design_system.html`, `brandbook.html`, `design.md`, `brandbook.md`, `design-instructions.md`, `demo/landing.html`) into `<project>/<dir>/`, creating directories.
 - Skips files that already exist unless `--force`.
 - Wires a managed `<!-- picasso:start -->` block into `<project>/CLAUDE.md` pointing at `<dir>/design-instructions.md`. Idempotent, and preserves any existing CLAUDE.md content.
+- Adds `<dir>/.picasso/` to `<project>/.gitignore` (creating the file if needed), so the coordinator's working state (the running brief and option-picker pages) never gets committed.
+
+## Commands and skills
+
+Two commands generate the layers this plan added:
+
+- **`/picasso:components`** generates or refreshes `components.css`, the reusable component layer built from `tokens.css` (actions, form fields, tables, badges, cards, overlays, navigation and tabs, alerts, and the loading, empty, and error states), then runs `picasso_review.py` against it.
+- **`/picasso:showcase`** assembles or refreshes `design_system.html`, the single page showing brand, values, palette, type scale, the full component gallery, and a contrast section that computes each conventional token pair's ratio at runtime, then runs `picasso_review.py` against it.
+
+Two skills back the accessibility and component work:
+
+- **`accessibility`** is the WCAG AA bar picasso enforces: contrast ratios for the conventional token pairs, visible focus via `:focus-visible`, keyboard operability, semantic markup and ARIA only where semantics cannot reach, reduced-motion handling, and 44px hit targets. It is the skill behind the `contrast`, `img-alt`, `focus-removed`, and `clickable-nonsemantic` checks.
+- **`components`** defines `components.css`'s conventions: semantic, stack-agnostic class names (`.btn`, `.field`, `.card`, `.modal`, and so on), a `--modifier` suffix for variants, attribute or `is-` classes for state, and the rule that pages and demos consume the layer rather than re-declaring component styles.
 
 ## Precedence
 
