@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo: Landing</title>
+  <style>
+    @import "../tokens.css";
+    body { margin: 0; font-family: var(--font-sans); color: var(--color-text);
+           background: var(--color-bg); line-height: var(--line-body); }
+    .wrap { max-width: var(--size-content); margin: 0 auto; padding: var(--space-12) var(--space-6); }
+    section { margin-block: var(--space-16); }
+    h1 { font-size: var(--font-size-2xl); line-height: var(--line-tight);
+         letter-spacing: var(--tracking-tight); max-width: var(--size-prose); }
+    .lead { font-size: var(--font-size-lg); color: var(--color-text-muted); max-width: var(--size-prose); }
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+    .card { border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+            padding: var(--space-6); background: var(--color-surface); }
+    /* Loading skeleton: mirrors the card layout it replaces. */
+    .skeleton { border-radius: var(--radius-sm); background: var(--color-border);
+                animation: pulse var(--duration-slow) var(--ease-in-out) infinite alternate; }
+    .skeleton.line { height: 12px; margin-block: var(--space-2); }
+    @keyframes pulse { to { opacity: 0.45; } }
+    @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+    .empty-state, .error-state { border: 1px dashed var(--color-border);
+      border-radius: var(--radius-lg); padding: var(--space-12); text-align: center;
+      color: var(--color-text-muted); }
+    .error-state { border-color: var(--color-danger); color: var(--color-danger); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section>
+      <h1>A clear promise in plain words.</h1>
+      <p class="lead">One honest sentence about who this is for and why it helps. No fabricated metrics, no fake logos.</p>
+    </section>
+
+    <section>
+      <div class="cards">
+        <div class="card"><h3>Feature</h3><p>Concrete benefit stated plainly.</p></div>
+        <div class="card"><h3>Feature</h3><p>Concrete benefit stated plainly.</p></div>
+        <div class="card"><h3>Feature</h3><p>Concrete benefit stated plainly.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Loading state</h2>
+      <div class="cards">
+        <div class="card"><div class="skeleton line" style="width:60%"></div><div class="skeleton line"></div><div class="skeleton line" style="width:80%"></div></div>
+        <div class="card"><div class="skeleton line" style="width:60%"></div><div class="skeleton line"></div><div class="skeleton line" style="width:80%"></div></div>
+        <div class="card"><div class="skeleton line" style="width:60%"></div><div class="skeleton line"></div><div class="skeleton line" style="width:80%"></div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Empty state</h2>
+      <div class="empty-state">Nothing here yet. When you add your first item, it shows up here.</div>
+    </section>
+
+    <section>
+      <h2>Error state</h2>
+      <div class="error-state">We couldn't load this. Check your connection and try again.</div>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+/* tokens.css: the single source of truth for this project's design system.
+   Every color, font, space, radius, shadow, and motion value is a token.
+   Reference tokens everywhere via var(--...). Never inline raw values. */
+:root {
+  /* Color: one deliberate accent, off-black text, neutral ramp. */
+  --color-bg: #ffffff;
+  --color-surface: #f8f8f7;
+  --color-border: #e5e5e3;
+  --color-text: #18181b;        /* zinc-950, never pure black */
+  --color-text-muted: #52525b;
+  --color-accent: #2563eb;      /* the ONE accent, pick a deliberate hue */
+  --color-accent-contrast: #ffffff;
+  --color-success: #15803d;
+  --color-danger: #b91c1c;
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-size-2xl: 2.5rem;
+  --line-tight: 1.15;
+  --line-body: 1.55;
+  --tracking-tight: -0.01em;
+
+  /* Spacing (Apple-HIG-ish 4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Size (containers) */
+  --size-content: 72rem;
+  --size-prose: 40rem;
+  --size-tap: 44px;             /* HIG minimum touch target */
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.06);
+  --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
+
+  /* Motion: animate transform/opacity only; named easings, no browser default. */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0c0c0d;
+    --color-surface: #161618;
+    --color-border: #27272a;
+    --color-text: #f4f4f5;
+    --color-text-muted: #a1a1aa;
+  }
+}
