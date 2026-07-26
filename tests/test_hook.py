@@ -74,3 +74,83 @@ def test_run_returns_empty_for_non_string_content():
     spec.loader.exec_module(mod)
     out = mod.run({"tool_input": {"file_path": "x.css", "content": 123}})
     assert out == ""
+
+def test_hook_applies_a_project_rule(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_lint_hook", HOOK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    (tmp_path / "rules.json").write_text(json.dumps({
+        "picassoRulesVersion": "1",
+        "rules": [{
+            "identifier": "no-lorem",
+            "title": "No lorem ipsum",
+            "statement": "Copy must not contain placeholder latin.",
+            "level": "must-not",
+            "category": "content",
+            "verification": "automated",
+            "message": "Placeholder latin in shipped copy.",
+            "check": {"scheme": "regex", "kinds": ["html"], "pattern": "lorem ipsum"},
+            "examples": [
+                {"outcome": "fail", "kind": "html", "content": "<p>lorem ipsum</p>"},
+                {"outcome": "pass", "kind": "html", "content": "<p>real copy</p>"},
+            ],
+        }],
+    }), encoding="utf-8")
+    page = tmp_path / "index.html"
+    message = mod.run(_payload(str(page), "<p>lorem ipsum dolor</p>"))
+    assert "no-lorem" in message
+
+def test_hook_honours_a_project_disable(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_lint_hook", HOOK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    (tmp_path / "rules.json").write_text(json.dumps({
+        "picassoRulesVersion": "1",
+        "rules": [{"identifier": "em-dash", "disabled": True}],
+    }), encoding="utf-8")
+    page = tmp_path / "index.html"
+    message = mod.run(_payload(str(page), "<p>Build faster — ship smarter.</p>"))
+    assert "em-dash" not in message
+
+def test_hook_is_silent_on_a_broken_project_rules_file(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_lint_hook", HOOK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    (tmp_path / "rules.json").write_text("{ broken", encoding="utf-8")
+    page = tmp_path / "index.html"
+    message = mod.run(_payload(str(page), "<p>clean copy here</p>"))
+    assert "Traceback" not in message
+
+def test_hook_still_applies_core_rules_with_no_project_file(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_lint_hook", HOOK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    page = tmp_path / "index.html"
+    message = mod.run(_payload(str(page), "<p>Build faster — ship smarter.</p>"))
+    assert "em-dash" in message
+
+def test_hook_reports_the_offending_url_via_snippet():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_lint_hook", HOOK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    html = '<img src="https://cdn.example.com/a.png" alt="a">'
+    message = mod.run(_payload("index.html", html))
+    assert "https://cdn.example.com/a.png" in message
+
+def test_hook_warns_once_when_shipped_rules_are_broken(tmp_path, monkeypatch):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_lint_hook", HOOK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    broken_core = tmp_path / "core.json"
+    broken_core.write_text("{ broken", encoding="utf-8")
+    import picasso_engine.rules as rules_mod
+    monkeypatch.setattr(rules_mod, "CORE_PATH", str(broken_core))
+    page = tmp_path / "index.html"
+    message = mod.run(_payload(str(page), "<p>clean copy here</p>"))
+    assert "shipped rules not applied" in message

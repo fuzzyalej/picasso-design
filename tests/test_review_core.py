@@ -68,21 +68,74 @@ def test_review_paths_dedupes_file_and_its_dir(tmp_path):
     assert len(undef) == 1
 
 
+def _contrast_criterion():
+    from picasso_engine.rules import load_rules
+    criteria, _errors = load_rules()
+    return next(c for c in criteria if c.identifier == "contrast")
+
+
+def _contrast_findings(tokens):
+    from picasso_engine.slop_lint import findings_for
+    return findings_for(_contrast_criterion(), "", "css", tokens)
+
+
 def test_contrast_findings_flags_low_pair():
-    from picasso_review import contrast_findings
     tokens = {"color-text": "#aaaaaa", "color-bg": "#ffffff"}
-    rules = {f.rule for f in contrast_findings(tokens)}
+    rules = {f.rule for f in _contrast_findings(tokens)}
     assert "contrast" in rules
 
 
 def test_contrast_findings_passes_good_pair():
-    from picasso_review import contrast_findings
     tokens = {"color-text": "#18181b", "color-bg": "#ffffff",
               "color-accent": "#2563eb", "color-accent-contrast": "#ffffff"}
-    assert contrast_findings(tokens) == []
+    assert _contrast_findings(tokens) == []
 
 
 def test_contrast_findings_skips_unparsable_or_missing():
-    from picasso_review import contrast_findings
-    assert contrast_findings({"color-text": "var(--x)", "color-bg": "#fff"}) == []
-    assert contrast_findings({}) == []
+    assert _contrast_findings({"color-text": "var(--x)", "color-bg": "#fff"}) == []
+    assert _contrast_findings({}) == []
+
+
+def test_review_paths_contrast_fires_once_per_directory(tmp_path):
+    (tmp_path / "tokens.css").write_text(
+        ":root{--color-text:#777777;--color-bg:#ffffff;}")
+    for i in range(3):
+        (tmp_path / f"f{i}.html").write_text(f"<div>{i}</div>")
+    results = R.review_paths([str(tmp_path)], str(tmp_path / "tokens.css"))
+    contrast = [f for _p, f in results if f.rule == "contrast"]
+    assert len(contrast) == 1
+
+
+def test_contrast_min_ratio_can_tighten_the_default():
+    from picasso_engine.schemes import run_check
+    check = {
+        "scheme": "token-pair", "minRatio": 7,
+        "pairs": [["color-text", "color-bg"]],
+    }
+    tokens = {"color-text": "#767676", "color-bg": "#ffffff"}
+    assert run_check(check, "", "css", tokens)
+
+
+def test_rule_set_findings_attributes_project_error_to_project_file(tmp_path):
+    path = tmp_path / "rules.json"
+    path.write_text("{ broken", encoding="utf-8")
+    from picasso_engine.rules import load_rules
+    _criteria, errors = load_rules(str(path))
+    findings = R._rule_set_findings(errors, str(path))
+    assert len(findings) == 1
+    attributed_path, finding = findings[0]
+    assert attributed_path == str(path)
+    assert "falling back to the shipped rules" in finding.message.lower()
+
+
+def test_rule_set_findings_collapses_multiple_core_errors_to_one_finding():
+    errors = ["core.json: rule 0: missing required field 'title'",
+              "core.json: rule 1: missing required field 'title'",
+              "core.json: rule 2: missing required field 'title'"]
+    from picasso_engine.rules import CORE_PATH
+    findings = R._rule_set_findings(errors, None)
+    assert len(findings) == 1
+    attributed_path, finding = findings[0]
+    assert attributed_path == CORE_PATH
+    assert "3 error" in finding.message
+    assert "shipped rules were not applied" in finding.message

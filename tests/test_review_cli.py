@@ -27,3 +27,22 @@ def test_cli_explicit_tokens_flag(tmp_path):
         text=True, capture_output=True)
     assert proc.returncode == 0
     assert "undefined-token" in proc.stdout
+
+def test_cli_contrast_finding_names_both_tokens(tmp_path):
+    (tmp_path / "tokens.css").write_text(
+        ":root{--color-text:#777777;--color-bg:#ffffff;}")
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "--tokens", str(tmp_path / "tokens.css")],
+        text=True, capture_output=True)
+    assert proc.returncode == 0
+    assert "--color-text" in proc.stdout
+    assert "--color-bg" in proc.stdout
+
+def test_cli_undefined_token_finding_names_the_token(tmp_path):
+    (tmp_path / "t.css").write_text(":root{--color-accent:#2563eb;}")
+    (tmp_path / "p.html").write_text('<div style="color:var(--nope)">x</div>')
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path / "p.html"), "--tokens", str(tmp_path / "t.css")],
+        text=True, capture_output=True)
+    assert proc.returncode == 0
+    assert "--nope" in proc.stdout

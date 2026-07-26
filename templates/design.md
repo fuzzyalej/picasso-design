@@ -18,18 +18,60 @@ One paragraph describing the feel.
 ## 2. Color Palette and Roles
 Each line: name, value token, role, rationale. All values live in `tokens.css`.
 - Accent: `var(--color-accent)`, primary action.
-**Banned Colors:** pure black, indigo/purple gradients, oversaturated accents.
+<!-- picasso:rules:color:start -->
+<!-- picasso:rules:color:end -->
 
 ## 3. Typography Rules
 Families, scale, tracking, leading (all tokens).
 **Banned Fonts:** reflexive Inter default without reason; random serif word inside a sans headline.
+<!-- picasso:rules:typography:start -->
+<!-- picasso:rules:typography:end -->
 
 ## 4. Component Stylings
-Buttons, cards, inputs, nav, loaders, empty, error. One line each. Every interactive component ships 8 states.
+Buttons, cards, inputs, nav, loaders, empty, error. One line each, then a
+`Not for:` line naming what to use instead. Every interactive component ships 8 states.
+- Button `.btn`: solid fill, one accent.
+  Not for: destructive actions, use `.btn--danger`.
+- Field `.field`: label, input, hint.
+  Not for: read-only display, use `.table`.
+- Label `.label`: input caption.
+  Not for: standalone body text, use plain prose.
+- Input `.input`: single-line text entry.
+  Not for: long-form text, use `.textarea`.
+- Select `.select`: one choice from a fixed, short list.
+  Not for: free-form text, use `.input`.
+- Textarea `.textarea`: multi-line text entry.
+  Not for: a single value on one line, use `.input`.
+- Table `.table`: tabular data, many rows of the same shape.
+  Not for: single-record detail, use `.card`.
+- Badge `.badge`: short status label.
+  Not for: primary actions, use `.btn`.
+- Card `.card`: bordered content container in a repeating grid.
+  Not for: blocking confirmation, use `.modal`.
+- Panel `.panel`: a settings or grouped-content section, not repeated.
+  Not for: repeating list items in a grid, use `.card`.
+- Scrim `.scrim`: modal backdrop.
+  Not for: page background, leave unset.
+- Modal `.modal`: blocking dialog.
+  Not for: transient feedback, use `.alert`.
+- Nav `.nav`: primary navigation links.
+  Not for: in-page section switching, use `.tabs`.
+- Tabs `.tabs`: in-page section switching.
+  Not for: primary navigation, use `.nav`.
+- Alert `.alert`: inline status message.
+  Not for: blocking confirmation, use `.modal`.
+- Skeleton `.skeleton`: loading placeholder.
+  Not for: permanent empty content, use `.empty-state`.
+- Empty state `.empty-state`: no data yet.
+  Not for: a failed request, use `.error-state`.
+- Error state `.error-state`: failed request.
+  Not for: nothing loaded yet, use `.empty-state`.
 
 ## 5. Hero / Signature Section
 Fits in viewport, at most 2 headline lines, subtext under 20 words.
 **Banned:** fake product UI, invented metrics, version stamps, scroll cues.
+<!-- picasso:rules:hero:start -->
+<!-- picasso:rules:hero:end -->
 
 ## 6. Layout Principles
 Grid-first, contained max-width, deliberate whitespace.
@@ -41,7 +83,9 @@ Named breakpoints, tested at 375, 768, 1440.
 Motion must be motivated. Animate transform and opacity only. Respect prefers-reduced-motion.
 
 ## 9. Anti-Patterns (Banned)
-- Three equal rounded cards as the only feature layout.
-- Eyebrows above every section.
-- Section-number labels and middle-dot separators everywhere.
-- Fabricated testimonials, logos, or metrics.
+<!-- picasso:rules:global:start -->
+<!-- picasso:rules:global:end -->
+
+## 10. Review by hand
+<!-- picasso:rules:manual:start -->
+<!-- picasso:rules:manual:end -->

@@ -10,7 +10,11 @@ def test_design_md_has_nine_sections_and_dials():
     assert "DESIGN_VARIANCE" in text
     assert "MOTION_INTENSITY" in text
     assert "VISUAL_DENSITY" in text
-    assert "Banned" in text  # inline ban subsections present
+    # Prose ban lists were replaced by rendered rule blocks (Task 9); the
+    # markers must be present and well-formed pairs, not the old inline prose.
+    for target in ("color", "typography", "hero", "global", "manual"):
+        assert f"<!-- picasso:rules:{target}:start -->" in text
+        assert f"<!-- picasso:rules:{target}:end -->" in text
 
 def test_brandbook_md_has_core_sections():
     text = (TPL / "brandbook.md").read_text().lower()
@@ -29,3 +33,16 @@ def test_markdown_scaffolds_not_sloppy():
         rules = {f.rule for f in lint(text, "copy")}
         assert "em-dash" not in rules, f"{name} contains em/en dash"
         assert "fake-metric" not in rules, f"{name} contains a fabricated metric"
+
+def test_design_md_carries_static_prose_above_the_typography_and_hero_blocks():
+    # This prose sits outside the managed markers, so a render never
+    # touches it; it is the only guidance for a section a fresh scaffold
+    # ships no automated rule for (Section 4 verified this way for years).
+    text = (TPL / "design.md").read_text()
+    typography_prose, typography_marker, _rest = text.partition(
+        "<!-- picasso:rules:typography:start -->")
+    assert "Banned Fonts" in typography_prose
+    hero_prose, hero_marker, _rest = text.partition(
+        "<!-- picasso:rules:hero:start -->")
+    assert "Banned:" in hero_prose
+    assert "fake product UI" in hero_prose

@@ -1,0 +1,334 @@
+{
+  "picassoRulesVersion": "1",
+  "rules": [
+    {
+      "identifier": "em-dash",
+      "title": "No em or en dashes in copy",
+      "statement": "Prose must not contain an em dash or an en dash.",
+      "level": "must-not",
+      "category": "content",
+      "verification": "automated",
+      "rationale": "Unprompted dash-heavy punctuation is a reliable signature of generated prose.",
+      "message": "Em/en dash in copy: replace with a comma, period, or reword.",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["html", "copy"],
+        "pattern": "[\u2014\u2013]"
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "copy", "content": "Build faster \u2014 ship smarter."},
+        {"outcome": "pass", "kind": "copy", "content": "Build faster, ship with care."}
+      ]
+    },
+    {
+      "identifier": "pure-black",
+      "title": "No pure black",
+      "statement": "Color values must not be pure black.",
+      "level": "must-not",
+      "category": "visual-design",
+      "verification": "automated",
+      "target": "color",
+      "rationale": "Pure black against white is harsh on screens and reads as an unconsidered default.",
+      "message": "Pure black (#000). Use an off-black token (e.g. zinc-950).",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["html", "css"],
+        "pattern": "#000(?:000)?(?:ff|f)?\\b",
+        "flags": "i"
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ".x{color:#000000;}"},
+        {"outcome": "pass", "kind": "css", "content": ".x{color:var(--color-text);}"}
+      ]
+    },
+    {
+      "identifier": "fake-metric",
+      "title": "No fabricated metrics",
+      "statement": "Copy must not state performance figures, adoption counts, or uptime percentages that are not real.",
+      "level": "must-not",
+      "category": "content",
+      "verification": "automated",
+      "rationale": "Invented social proof is the most damaging slop tell because it makes the artifact dishonest rather than merely generic.",
+      "message": "Looks like a fabricated metric. Use real numbers or remove.",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["html", "copy"],
+        "flags": "i",
+        "pattern": "(\\+?\\d[\\d,]*\\s?%\\s*(?:conversion|growth|faster|increase|more))|(trusted by\\s+[\\d,]+\\+?)|(\\b\\d[\\d,]*\\+?\\s+(?:users|customers|teams|companies)\\b)|(\\b9{2,3}(?:\\.9+)?\\s?%)"
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "copy", "content": "Trusted by 50,000+ teams"},
+        {"outcome": "pass", "kind": "copy", "content": "We ship carefully and often."}
+      ]
+    },
+    {
+      "identifier": "inline-hex",
+      "title": "No raw hex outside token declarations",
+      "statement": "Color values must reference a token rather than stating a hex literal.",
+      "level": "must-not",
+      "category": "visual-design",
+      "verification": "automated",
+      "target": "color",
+      "rationale": "A literal decouples the value from the system, so the system stops describing the artifact.",
+      "message": "Raw hex outside a token declaration. Reference a token via var(--...).",
+      "check": [
+        {
+          "scheme": "regex",
+          "kinds": ["css"],
+          "pattern": "#[0-9a-fA-F]{3,8}\\b",
+          "strip": ["--[A-Za-z0-9_-]+\\s*:\\s*[^;]*;?"]
+        },
+        {
+          "scheme": "regex",
+          "kinds": ["html"],
+          "flags": "is",
+          "pattern": "#[0-9a-fA-F]{3,8}\\b",
+          "within": {"pattern": "style\\s*=\\s*([\"'])(.*?)\\1", "group": 2}
+        }
+      ],
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ".btn{background:#2563eb;}"},
+        {"outcome": "fail", "kind": "html", "content": "<div style=\"color:#2563eb\">hi</div>"},
+        {"outcome": "pass", "kind": "css", "content": ":root{--color-accent:#2563eb;}"}
+      ]
+    },
+    {
+      "identifier": "img-alt",
+      "title": "Images carry alt text",
+      "statement": "Every img element must have an alt attribute.",
+      "level": "must",
+      "category": "accessibility",
+      "verification": "automated",
+      "rationale": "A missing attribute leaves a screen reader to announce the file name.",
+      "references": [
+        {"title": "WCAG 2.2 SC 1.1.1 Non-text Content",
+         "url": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html"}
+      ],
+      "message": "Image without alt. Add alt text, or alt=\"\" if decorative.",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["html"],
+        "flags": "i",
+        "pattern": "<img\\b[^>]*>",
+        "absent": "\\balt\\s*="
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "html", "content": "<img src=\"x.png\">"},
+        {"outcome": "pass", "kind": "html", "content": "<img src=\"x.png\" alt=\"A cat\">"}
+      ]
+    },
+    {
+      "identifier": "focus-removed",
+      "title": "Focus indication survives",
+      "statement": "A rule that removes the focus outline must be accompanied by a :focus-visible replacement.",
+      "level": "must",
+      "category": "accessibility",
+      "verification": "automated",
+      "rationale": "Removing the outline without replacing it makes keyboard navigation untrackable.",
+      "references": [
+        {"title": "WCAG 2.2 SC 2.4.7 Focus Visible",
+         "url": "https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html"}
+      ],
+      "message": "Focus outline removed with no :focus-visible replacement.",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["html", "css"],
+        "flags": "i",
+        "pattern": "outline\\s*:\\s*(?:none|0)\\b",
+        "skipIfFileMatches": ":focus-visible"
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ".btn{outline:none;}"},
+        {"outcome": "pass", "kind": "css", "content": ".btn{outline:none;} .btn:focus-visible{outline:2px solid;}"}
+      ]
+    },
+    {
+      "identifier": "clickable-nonsemantic",
+      "title": "Clickable elements are semantic",
+      "statement": "A div or span carrying an onclick handler must declare a role.",
+      "level": "should",
+      "category": "accessibility",
+      "verification": "automated",
+      "rationale": "A generic element is not focusable and announces nothing, so the interaction exists only for a mouse.",
+      "message": "Clickable div/span without a role. Use a button/link, or add role plus keyboard support.",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["html"],
+        "flags": "i",
+        "pattern": "<(?:div|span)\\b[^>]*\\bonclick\\s*=[^>]*>",
+        "absent": "\\brole\\s*="
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "html", "content": "<div onclick=\"go()\">Go</div>"},
+        {"outcome": "pass", "kind": "html", "content": "<div role=\"button\" tabindex=\"0\" onclick=\"go()\">Go</div>"}
+      ]
+    },
+    {
+      "identifier": "purple-gradient",
+      "title": "No indigo or purple gradients",
+      "statement": "Gradient declarations must not interpolate between indigo, violet, or purple hues.",
+      "level": "must-not",
+      "category": "visual-design",
+      "verification": "automated",
+      "target": "color",
+      "rationale": "It is the most recognizable signature of machine-generated interface work.",
+      "evidence": "Present in the majority of unprompted LLM-authored landing pages.",
+      "message": "Indigo/purple gradient: the #1 AI-slop tell. Pick a deliberate accent.",
+      "check": {"scheme": "builtin", "name": "purple_gradient", "kinds": ["html", "css"]},
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ".h{background:linear-gradient(90deg,indigo,purple);}"},
+        {"outcome": "pass", "kind": "css", "content": ".h{background:linear-gradient(90deg,#0f172a,#1e293b);}"}
+      ]
+    },
+    {
+      "identifier": "eyebrow-overuse",
+      "title": "Eyebrows stay rare",
+      "statement": "All-caps kicker labels must not exceed one per three sections.",
+      "level": "should-not",
+      "category": "content",
+      "verification": "automated",
+      "rationale": "An eyebrow above every section stops signalling anything and becomes texture.",
+      "message": "Too many all-caps kickers. Cap eyebrows at 1 per 3 sections.",
+      "check": {"scheme": "builtin", "name": "eyebrow_overuse", "kinds": ["html"]},
+      "examples": [
+        {"outcome": "fail", "kind": "html", "content": "<section><p>SELECTED WORK</p></section><section><p>WHAT WE DO</p><p>OUR PROCESS</p></section>"},
+        {"outcome": "pass", "kind": "html", "content": "<section><p>SELECTED WORK</p></section><section><p>hello</p></section>"}
+      ]
+    },
+    {
+      "identifier": "grid-1fr",
+      "title": "Grid tracks resist overflow",
+      "statement": "A grid track sized 1fr should be written minmax(0,1fr).",
+      "level": "should",
+      "category": "development",
+      "verification": "automated",
+      "rationale": "A bare 1fr track has an auto minimum, so long content forces the cell wider than its share.",
+      "message": "Grid uses 1fr; prefer minmax(0,1fr) so cells don't overflow.",
+      "check": {"scheme": "builtin", "name": "grid_1fr", "kinds": ["html", "css"]},
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ".g{grid-template-columns:repeat(3,1fr);}"},
+        {"outcome": "pass", "kind": "css", "content": ".g{grid-template-columns:repeat(3,minmax(0,1fr));}"}
+      ]
+    },
+    {
+      "identifier": "duplicate-cta",
+      "title": "One label per call to action",
+      "statement": "Two calls to action on one page must not carry the same label.",
+      "level": "should-not",
+      "category": "content",
+      "verification": "automated",
+      "rationale": "Repeating a label hides which action the page actually wants.",
+      "message": "A CTA label repeats; use one label per CTA intent.",
+      "check": {"scheme": "builtin", "name": "duplicate_cta", "kinds": ["html"]},
+      "examples": [
+        {"outcome": "fail", "kind": "html", "content": "<a class=\"btn\">Get started</a><a class=\"btn\">Get Started</a>"},
+        {"outcome": "pass", "kind": "html", "content": "<a class=\"btn\">Get started</a><a class=\"btn\">See pricing</a>"}
+      ]
+    },
+    {
+      "identifier": "contrast",
+      "title": "Text pairs clear WCAG AA",
+      "statement": "Conventional foreground and background token pairs must reach a contrast ratio of 4.5:1.",
+      "level": "must",
+      "category": "accessibility",
+      "verification": "automated",
+      "target": "color",
+      "rationale": "Below this ratio, body text stops being legible for a substantial share of readers.",
+      "evidence": "parse_tokens is last-wins: when a token is declared twice (e.g. a base value overridden inside a prefers-color-scheme: dark block), only the last-declared value is checked. A light-mode-only contrast failure on a token later overridden for dark mode is not caught by this check.",
+      "references": [
+        {"title": "WCAG 2.2 SC 1.4.3 Contrast (Minimum)",
+         "url": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"}
+      ],
+      "message": "Token pair falls below WCAG AA 4.5:1.",
+      "check": {
+        "scheme": "token-pair",
+        "minRatio": 4.5,
+        "pairs": [
+          ["color-text", "color-bg"],
+          ["color-text", "color-surface"],
+          ["color-text-muted", "color-bg"],
+          ["color-accent-contrast", "color-accent"]
+        ]
+      },
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ":root{--color-text:#777777;--color-bg:#ffffff;}"},
+        {"outcome": "pass", "kind": "css", "content": ":root{--color-text:#18181b;--color-bg:#ffffff;}"}
+      ]
+    },
+    {
+      "identifier": "external-dep",
+      "title": "Artifacts are self-contained",
+      "statement": "An artifact must not reference an asset on an external host.",
+      "level": "must-not",
+      "category": "development",
+      "verification": "automated",
+      "rationale": "A remote reference makes the artifact stop working offline and couples the design to someone else's uptime.",
+      "message": "External dependency. Artifacts must be self-contained; inline or vendor it.",
+      "check": {"scheme": "builtin", "name": "external_deps_check", "kinds": ["html", "css"]},
+      "examples": [
+        {"outcome": "fail", "kind": "html", "content": "<img src=\"https://cdn.example.com/a.png\" alt=\"a\">"},
+        {"outcome": "pass", "kind": "html", "content": "<img src=\"./a.png\" alt=\"a\">"}
+      ]
+    },
+    {
+      "identifier": "undefined-token",
+      "title": "Token references resolve",
+      "statement": "Every var(--token) reference must name a custom property defined in tokens.css.",
+      "level": "must",
+      "category": "development",
+      "verification": "automated",
+      "rationale": "An unresolved reference falls back to nothing, so the failure is silent and only visible in the rendered page.",
+      "message": "References a token that is not defined in tokens.css.",
+      "check": {"scheme": "builtin", "name": "undefined_token_refs", "kinds": ["html", "css"]},
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": ".x{color:var(--nope);}"},
+        {"outcome": "pass", "kind": "css", "content": ":root{--color-text:#18181b;} .x{color:var(--color-text);}"}
+      ]
+    },
+    {
+      "identifier": "component-use-cases",
+      "title": "Components document when not to use them",
+      "statement": "Each component in components.css should carry a \"Not for:\" line in design.md naming an alternative.",
+      "level": "should",
+      "category": "content",
+      "verification": "automated",
+      "rationale": "Knowing when to reach for something else is what prevents a modal being used for a message.",
+      "message": "Component has no \"Not for:\" line in design.md section 4.",
+      "check": {"scheme": "builtin", "name": "component_use_cases", "kinds": ["copy"]},
+      "examples": [
+        {"outcome": "pass", "kind": "copy", "content": "## 4. Component Stylings\n- Button `.btn`: solid fill.\n  Not for: destructive actions, use `.btn--danger`.\n"},
+        {"outcome": "fail", "kind": "copy", "content": "## 4. Component Stylings\n- Button `.btn`: solid fill.\n"}
+      ]
+    },
+    {
+      "identifier": "hero-fits-viewport",
+      "title": "Hero fits in one viewport",
+      "statement": "The hero section must fit within one viewport without scrolling.",
+      "level": "must",
+      "category": "visual-design",
+      "verification": "manual",
+      "target": "hero",
+      "rationale": "A hero that requires a scroll to see in full reads as an ordinary section rather than a first impression, and undercuts the one thing the page most wants seen immediately."
+    },
+    {
+      "identifier": "hero-headline-lines",
+      "title": "Headline stays to two lines",
+      "statement": "The hero headline should wrap to no more than two lines at common viewport widths.",
+      "level": "should",
+      "category": "content",
+      "verification": "manual",
+      "target": "hero",
+      "rationale": "A headline that runs to three or more lines is usually saying too much at once, and starts competing with the hero's supporting content for attention."
+    },
+    {
+      "identifier": "hero-subtext-length",
+      "title": "Subtext stays under 20 words",
+      "statement": "Hero subtext should stay under 20 words.",
+      "level": "should",
+      "category": "content",
+      "verification": "manual",
+      "target": "hero",
+      "rationale": "Subtext this long stops supporting the headline and starts restating the page below it, which is a sign the hero is trying to do the whole page's job."
+    }
+  ]
+}

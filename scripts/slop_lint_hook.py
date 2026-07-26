@@ -5,8 +5,9 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
-from picasso_engine.slop_lint import lint  # noqa: E402
+from picasso_engine.slop_lint import lint, format_finding  # noqa: E402
 from picasso_engine.kinds import kind_for  # noqa: E402
+from picasso_engine.rules import find_project_rules, load_rules  # noqa: E402
 
 
 def run(payload: dict) -> str:
@@ -24,14 +25,22 @@ def run(payload: dict) -> str:
             return ""
     if not isinstance(content, str):
         return ""
-    findings = lint(content, kind)
-    if not findings:
-        return ""
-    header = f"picasso: {len(findings)} slop tell(s) in {os.path.basename(path)}:"
-    body = "\n".join(
-        f"  [{f.severity}] {f.rule} (line {f.line}): {f.message}" for f in findings
-    )
-    return f"{header}\n{body}"
+    rules = None
+    errors = []
+    try:
+        rules, errors = load_rules(find_project_rules(path))
+    except Exception:
+        rules = None  # warn-only: fall back to the dispatcher's own loading
+    findings = lint(content, kind, None, rules)
+    lines = []
+    # Only the shipped rule set failing is worth a line here: a typo'd
+    # project rules.json degrades silently to core-only by design.
+    if any(e.startswith("core.json:") for e in errors):
+        lines.append("picasso: rule set problem, shipped rules not applied")
+    if findings:
+        lines.append(f"picasso: {len(findings)} slop tell(s) in {os.path.basename(path)}:")
+        lines.extend(format_finding(f) for f in findings)
+    return "\n".join(lines)
 
 
 def main():
