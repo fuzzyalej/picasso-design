@@ -12,6 +12,9 @@ description: Use when authoring or editing components.css and composing UI from 
 - Classes are semantic and stack-agnostic: `.btn`, `.field`, `.input`, `.select`, `.textarea`, `.table`, `.badge`, `.card`, `.panel`, `.modal` (+ `.scrim`), `.nav`, `.tabs`, `.alert`, `.skeleton`, `.empty-state`, `.error-state`.
 - Variants use a modifier suffix: `.btn--ghost`, `.btn--danger`, `.alert--success`. State uses attributes or `is-` classes: `[aria-current]`, `[aria-selected]`, `.is-invalid`.
 - Every interactive component ships accessible by default: semantic element, `:focus-visible` ring via `var(--focus-ring)`, 44px minimum tap target, and `prefers-reduced-motion` handling on anything animated. Follow the accessibility skill.
+- Every component carries a `Not for:` line in `design.md` section 4 naming what
+  to use instead. A component nobody can misuse does not need one; every other
+  component does.
 
 ## Consumption
 Demos and `design_system.html` import `tokens.css` then `components.css`, and compose real classes. If a page needs a one-off layout rule (a page grid, a hero container), keep it in that page's `<style>`; anything reusable belongs in `components.css`.

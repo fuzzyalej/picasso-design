@@ -22,6 +22,11 @@
     .matrix th, .matrix td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }
     .pass { color: var(--color-success); }
     .fail { color: var(--color-danger); }
+    .spec-not-for {
+      margin-top: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
   </style>
 </head>
 <body>
@@ -63,6 +68,7 @@
       <button class="btn btn--danger">Destructive action</button>
       <button class="btn" disabled>Unavailable action</button>
     </div>
+    <p class="spec-not-for"><strong>Not for:</strong> destructive actions, use <code>.btn--danger</code>.</p>
 
     <h2>Form</h2>
     <div class="field">
@@ -75,6 +81,7 @@
       <input class="input" id="ds-name" type="text" aria-invalid="true">
       <span class="hint">This field is required.</span>
     </div>
+    <p class="spec-not-for"><strong>Not for:</strong> long-form text, use <code>.textarea</code>.</p>
 
     <h2>Table</h2>
     <table class="table">
@@ -84,6 +91,7 @@
         <tr><td>Second row</td><td><span class="badge">Paused</span></td></tr>
       </tbody>
     </table>
+    <p class="spec-not-for"><strong>Not for:</strong> single-record detail, use <code>.card</code>.</p>
 
     <h2>Modal</h2>
     <div class="scrim" style="position:static">
@@ -93,14 +101,17 @@
         <div class="row"><button class="btn">Confirm change</button><button class="btn btn--ghost">Cancel change</button></div>
       </div>
     </div>
+    <p class="spec-not-for"><strong>Not for:</strong> transient feedback, use <code>.alert</code>.</p>
 
     <h2>Feedback and states</h2>
     <div class="alert alert--success">Saved. Your changes are live.</div>
+    <p class="spec-not-for"><strong>Not for:</strong> blocking confirmation, use <code>.modal</code>.</p>
     <div class="grid-3" style="margin-top:var(--space-4)">
       <div class="card"><div class="skeleton line" style="width:60%"></div><div class="skeleton line"></div></div>
       <div class="empty-state">Nothing here yet.</div>
       <div class="error-state">We could not load this. Try again.</div>
     </div>
+    <p class="spec-not-for"><strong>Not for:</strong> a failed request, use <code>.error-state</code>; nothing loaded yet, use <code>.empty-state</code>.</p>
 
     <h2>Contrast</h2>
     <table class="matrix" id="ds-contrast">
