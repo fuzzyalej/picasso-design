@@ -62,6 +62,40 @@ design-system/
 - **A warn-only lint hook.** As you edit HTML, CSS, and copy, a background hook flags known tells (indigo/purple gradients, pure black, inline hex, fabricated metrics, eyebrow overuse, missing image alt text, removed focus outlines, unlabeled clickable divs, and more). It informs, it never blocks.
 - **An explicit audit.** `/picasso:review` walks the design system and reports drift against the tokens and brandbook, including a WCAG AA contrast check on the conventional token pairs, so you can catch it deliberately.
 
+## Tuning the rules
+
+Every check the linter and reviewer run is a criterion in `rules/core.json`, not
+hardcoded. A project can override or extend the shipped set by editing its own
+`design-system/rules.json` (the scaffold creates it empty). Add a new
+identifier to introduce a rule, or reuse an existing one to override it:
+
+```json
+{
+  "picassoRulesVersion": "1",
+  "rules": [
+    {
+      "identifier": "no-serif-headings",
+      "title": "Headings stay sans-serif",
+      "statement": "Heading elements must not use a serif font.",
+      "level": "must-not",
+      "category": "visual-design",
+      "verification": "automated",
+      "message": "Heading uses a serif font; use --font-sans.",
+      "check": {"scheme": "regex", "kinds": ["css"], "pattern": "h[1-6]\\s*\\{[^}]*serif"},
+      "examples": [
+        {"outcome": "fail", "kind": "css", "content": "h1{font-family:serif;}"},
+        {"outcome": "pass", "kind": "css", "content": "h1{font-family:var(--font-sans);}"}
+      ]
+    },
+    {"identifier": "grid-1fr", "disabled": true}
+  ]
+}
+```
+
+The first entry adds a project-specific rule; the second turns off a shipped
+one by identifier. See `docs/reference.md` for the full field reference,
+schemes, and merge semantics.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md): how the engine, scripts, hook, commands, skills, and templates fit together.

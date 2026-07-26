@@ -1,8 +1,147 @@
 # Technical reference
 
+## The rule layer (`picasso_engine.rules`, `rules.py`, `rules_render.py`)
+
+The eleven original lint rules plus the four structural checks below are no
+longer hardcoded — they are data. The shipped set lives in `rules/core.json`
+(18 criteria as of this writing: 15 automated — `em-dash`, `pure-black`,
+`fake-metric`, `inline-hex`, `img-alt`, `focus-removed`,
+`clickable-nonsemantic`, `purple-gradient`, `eyebrow-overuse`, `grid-1fr`,
+`duplicate-cta`, `contrast`, `external-dep`, `undefined-token`,
+`component-use-cases` — plus 3 manual hero criteria (`hero-fits-viewport`,
+`hero-headline-lines`, `hero-subtext-length`) that carry no `check` and
+route into `design.md`'s "Review by hand" section), stamped with a
+`picassoRulesVersion`. A project can add its own `design-system/rules.json`,
+which the loader merges over core.
+
+### Criterion fields
+
+Each entry in a rules file's `rules` array is a criterion:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `identifier` | yes | Kebab-case, unique within the merged set. |
+| `title` | yes | Short human-readable name. |
+| `statement` | yes | The rule itself, as prose. |
+| `level` | yes | One of `must`, `must-not`, `should`, `should-not` (RFC 2119). `must`/`must-not` report as `warn`; `should`/`should-not` report as `info`. |
+| `category` | yes | One of `visual-design`, `interaction`, `accessibility`, `content`, `motion`, `development`. |
+| `verification` | yes | `automated` (has a `check`, is linted), `assisted`, or `manual` (neither is linted; both are prose-only). |
+| `message` | for automated rules | The finding text shown to the user. |
+| `check` | for automated rules | One check object, or a list of them. A list is a union, not a conjunction: each check is evaluated independently and any check that matches produces its own finding, so a criterion whose checks both match the same input reports twice — hits are not deduplicated across checks within a criterion (see schemes below). |
+| `examples` | for automated rules | At least one entry with `"outcome": "pass"` and one with `"outcome": "fail"`, each `{"outcome", "kind", "content"}`. Used by the conformance tests, not at runtime. |
+| `rationale` | no | Why the rule exists. Must not just restate `statement`. |
+| `evidence` | no | Free-text backing for the rationale. |
+| `references` | no | A list of citations or links. |
+| `target` | no | Routes the rule into a `design.md` managed block: `color`, `typography`, `hero`, `global`, or (implicitly) `manual` for anything not `automated`. |
+| `disabled` | project files only | `true` removes a core rule by identifier. Rejected in `rules/core.json` itself. |
+
+`validate_rules(raw, allow_disabled=False)` returns a list of human-readable
+errors (empty means valid); it never raises. `load_rules(project_path=None)`
+returns `(criteria, errors)` and always degrades to the shipped rules on a
+broken or absent project file.
+
+### Schemes
+
+A `check` names a `scheme` and that scheme's own keys:
+
+- **`regex`** — `kinds` (required list drawn from `html`, `css`, `copy`),
+  `pattern` (required), `flags` (a string of `i`/`s`/`m`), and four modifiers:
+  `strip`, `within`, `absent`, `skipIfFileMatches`. Applied in this fixed
+  order:
+  1. `skipIfFileMatches` — evaluated once against the whole file; if it
+     matches, the check is skipped entirely.
+  2. `strip` — a list of patterns removed from each line before matching.
+  3. `within` — narrows the haystack to the capture group (`group`, default
+     `1`) of a containing pattern, so the rule matches inside e.g. a `style=`
+     attribute rather than the whole line.
+  4. `pattern` — the match itself, run against what `strip`/`within` left.
+  5. `absent` — if it matches inside the same hit, the hit is discarded (an
+     exception carved out of an otherwise-matching line).
+- **`token-pair`** — `pairs` (a list of `[foreground, background]` token name
+  pairs) and `minRatio` (default `4.5`). Evaluated against the token map from
+  `tokens.css`, not file content; a rule mixing `token-pair` with any other
+  scheme in the same `check` list is rejected by `validate_rules` — the two
+  are incoherent together (one reads tokens, the other reads content).
+- **`builtin`** — `kinds` plus `name`, for the checks that compute rather than
+  match. `name` is one of the seven registered functions in
+  `picasso_engine.schemes.BUILTINS`: `purple_gradient`, `eyebrow_overuse`,
+  `grid_1fr`, `duplicate_cta`, `external_deps_check`, `undefined_token_refs`,
+  `component_use_cases`. `validate_rules` rejects an unrecognized name, and
+  rejects a builtin check that omits `kinds`.
+
+  `kinds` means the same thing here as for `regex` and is enforced in the same
+  place — `run_check` gates on it before dispatching, so a builtin never sees a
+  kind its rule did not declare. This is why the JSON alone tells you when a
+  rule runs: `{"scheme": "builtin", "name": "purple_gradient", "kinds": ["html", "css"]}`
+  says plainly that the rule skips prose, without reading any Python.
+
+  Writing a new builtin: the registry maps a name to
+  `callable(content, kind, tokens) -> iterable of (line_number, snippet)`.
+  Yield tuples, not `Finding` objects — `findings_for` attaches the identifier,
+  the derived severity, and the message. Do not gate on `kind` inside the
+  function; declare `kinds` in the JSON instead. Do gate on `tokens`, which is
+  `None` on the hook path (see "Tokens and the hook" below).
+
+### Tokens and the hook
+
+`tokens` is `None` on the hook path and a dict on the review path, and the
+difference is deliberate:
+
+- **`None`** — the write hook lints one file on save and has no token map, so it
+  passes `None`. The `token-pair` scheme and `undefined_token_refs` yield nothing
+  rather than guessing. Without this, every `var()` reference in every edited
+  file would be reported as an undefined token.
+- **`{}`** — an empty map means `tokens.css` was looked for and its properties
+  are genuinely absent, so every `var()` reference *is* undefined and is
+  reported. This preserves the reviewer's pre-existing behaviour.
+
+The consequence worth knowing: `contrast`, `undefined-token`, and
+`component-use-cases` never fire on the hook path. Editing `design.md` will not
+warn you about an undocumented component — that surfaces when you run
+`/picasso:review`. `contrast` is also skipped entirely when no `tokens.css` is
+found, since there are no pairs to compare.
+
+### Merge semantics
+
+`merge(core, project)` layers a project's criteria over the shipped set by
+identifier:
+
+- A new identifier is **appended**.
+- An existing identifier is **replaced** in place (position preserved).
+- `{"identifier": "<id>", "disabled": true}` **removes** that core rule from
+  the merged set. `disabled` is only valid in a project rules file —
+  `rules/core.json` rejects it.
+
+### Rendering and finding kinds
+
+`rules_render.render_all(existing_markdown, criteria)` fills `design.md`'s
+five managed blocks (routed by `target`, with non-automated rules landing in
+the manual block) from the current rule set. `rules_render.stale_blocks`
+reports which blocks no longer match a fresh render.
+
+`picasso_review.py` adds two finding kinds on top of the per-file lint
+results:
+
+- **`rules-invalid`** (`warn`) — the merged rule set failed validation (an
+  invalid core or project file); the review falls back to the shipped rules
+  and reports why.
+- **`rules-stale`** (`info`) — one of `design.md`'s managed blocks no longer
+  matches what the current rules would render; re-render it or move the edit
+  into `rules.json`.
+
+### A note on trust
+
+Patterns in `design-system/rules.json` are compiled and executed by the lint hook
+on every write. A pathological pattern can therefore hang the hook.
+
+picasso does not sandbox these patterns and does not screen them. `rules.json` is
+a file in your own repository, trusted at the same level as `CLAUDE.md`. This is
+a documented limit, not a security boundary — do not paste a rules file from a
+source you would not paste a shell script from.
+
 ## Lint rules
 
-`picasso_engine.slop_lint.lint(content, kind, tokens=None)` returns a list of `Finding(rule, severity, message, line, snippet)`. `kind` is `"html"`, `"css"`, or `"copy"` (Markdown). Rules apply per kind.
+`picasso_engine.slop_lint.lint(content, kind, tokens=None, rules=None)` returns a list of `Finding(rule, severity, message, line, snippet)`. `kind` is `"html"`, `"css"`, or `"copy"` (Markdown). Rules apply per kind. The table below documents the eleven original rules; they are now criteria in `rules/core.json` rather than hardcoded, but behave identically.
 
 | Rule | Severity | Kinds | Flags |
 | --- | --- | --- | --- |
@@ -75,23 +214,27 @@ Every interactive component ships eight states: default, hover, focus-visible, a
 ### `picasso_review.py`
 
 ```
-python3 scripts/picasso_review.py [path ...] [--tokens PATH]
+python3 scripts/picasso_review.py [path ...] [--tokens PATH] [--rules PATH]
 ```
 
 - `path` defaults to `design-system`. Directories are walked for `.html`, `.htm`, `.css`, `.md` files.
 - `--tokens` points at the `tokens.css` used for `undefined-token` and `contrast` checks. If omitted, it auto-detects `tokens.css` under the first path, then `design-system/tokens.css`.
-- Always exits 0. Prints a report grouped by file, or a clean message.
+- `--rules` points at a project `rules.json` to merge over the shipped set. If omitted, it walks up from the tokens path (or the first path given) looking for a sibling `rules.json`.
+- Always exits 0. Prints a report grouped by file, or a clean message. A broken or invalid rules file reports a `rules-invalid` finding and falls back to the shipped rules rather than failing the run.
 
 ### `picasso_scaffold.py`
 
 ```
 python3 scripts/picasso_scaffold.py --project . --dir design-system --templates <templates-dir> [--force]
+python3 scripts/picasso_scaffold.py --project . --dir design-system --render
 ```
 
 - Copies the template files (`tokens.css`, `components.css`, `design_system.html`, `brandbook.html`, `design.md`, `brandbook.md`, `design-instructions.md`, `demo/landing.html`) into `<project>/<dir>/`, creating directories.
+- Writes an empty `<project>/<dir>/rules.json` (`{"picassoRulesVersion": "1", "rules": []}`) for the project to tune later, and renders `design.md`'s managed rule blocks from the current rule set so a fresh scaffold starts in sync.
 - Skips files that already exist unless `--force`.
 - Wires a managed `<!-- picasso:start -->` block into `<project>/CLAUDE.md` pointing at `<dir>/design-instructions.md`. Idempotent, and preserves any existing CLAUDE.md content.
 - Adds `<dir>/.picasso/` to `<project>/.gitignore` (creating the file if needed), so the coordinator's working state (the running brief and option-picker pages) never gets committed.
+- `--render` re-renders an existing `<dir>/design.md`'s managed rule blocks in place from the merged (core + project) rule set, then exits — no template copying, no `CLAUDE.md` wiring, no `rules.json` write, and `--templates` is not required. This is the fix for a `rules-stale` finding: it closes the drift loop without `--force`'s destructive full-file overwrite.
 
 ## Commands and skills
 

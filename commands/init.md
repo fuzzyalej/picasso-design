@@ -24,7 +24,7 @@ Dispatch parallel subagents to draft 2 to 4 distinct brand directions, each with
 
 ## Phase 2: Tokens (lane 🟩)
 
-Dispatch parallel subagents to produce 2 to 4 palette and type systems, each a full `tokens.css` candidate rendered live, each passing WCAG AA on the conventional pairs (never an indigo or purple default, off-black text, real scale, spacing, radii, elevation, motion). Build the comparison page, open it, and ask the user to pick. Write `<folder>/tokens.css`, then using `tokens-and-system` fill `<folder>/design.md` (aesthetic, the resolved dials, color roles, typography, component stylings, hero rules, layout, breakpoints, motion, accessibility section, component inventory, banned anti-patterns). Gate.
+Dispatch parallel subagents to produce 2 to 4 palette and type systems, each a full `tokens.css` candidate rendered live, each passing WCAG AA on the conventional pairs (never an indigo or purple default, off-black text, real scale, spacing, radii, elevation, motion). Build the comparison page, open it, and ask the user to pick. Write `<folder>/tokens.css`, then using `tokens-and-system` fill `<folder>/design.md` (aesthetic, the resolved dials, color roles, typography, component stylings, hero rules, layout, breakpoints, motion, accessibility section, component inventory, banned anti-patterns). Once the palette and type decisions are locked, write `<folder>/rules.json` from them and run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/picasso_scaffold.py" --project . --dir <folder> --render` to re-render `design.md`'s managed rule blocks in place so the document stays in sync. Gate.
 
 ## Phase 3: Components (lane 🟪)
 

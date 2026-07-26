@@ -15,3 +15,5 @@ If no path is given in `$ARGUMENTS`, pass the design-system folder explicitly (f
 Present the report grouped by file. For each finding, explain briefly why it matters and propose a concrete fix that uses the project's tokens and brandbook. Do NOT change any files automatically; wait for the user to choose what to fix. If the report is clean, say so plainly.
 
 Contrast findings (a token pair below AA) and structural a11y findings (missing alt, a removed focus outline, a non-semantic clickable) are surfaced too; propose a token or markup fix for each.
+
+The reviewer also reports two rule-layer findings: `rules-invalid` when the project's `rules.json` (or the shipped `rules/core.json`) fails validation, in which case it falls back to the shipped rules, so fix the file it names; and `rules-stale` when one of `design.md`'s managed rule blocks no longer matches the current rule set, so run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/picasso_scaffold.py" --project . --dir <folder> --render` to re-render it in place, or move the manual edit into `rules.json`.

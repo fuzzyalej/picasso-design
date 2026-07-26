@@ -1,12 +1,13 @@
 # Architecture
 
-picasso is a Claude Code plugin. It ships no runtime dependency into your project: it produces artifacts (Markdown, CSS, HTML) and audits them. The moving parts split into five layers.
+picasso is a Claude Code plugin. It ships no runtime dependency into your project: it produces artifacts (Markdown, CSS, HTML) and audits them. The moving parts split into six layers.
 
 ```
 commands/            user-facing prompts  (/picasso:init, :brandbook, :system, :tokens, :components, :demo, :showcase, :review)
 skills/              the know-how they load (taste, brand, tokens-and-system, motion, unslop-copy, accessibility, components)
+rules/core.json      the shipped rule set, as data
 scripts/             mechanical work       (picasso_scaffold.py, picasso_review.py)
-  picasso_engine/    the reusable core     (slop_lint, tokens, artifact_check, claude_md, kinds, frontmatter, contrast)
+  picasso_engine/    the reusable core     (rules, schemes, slop_lint, rules_render, tokens, artifact_check, claude_md, kinds, frontmatter, contrast)
 hooks/               the warn-only lint hook wiring
 templates/           the design-system artifacts that get copied into a project
 ```
@@ -15,7 +16,21 @@ templates/           the design-system artifacts that get copied into a project
 
 Pure Python, standard library only, fully unit-tested. This is the reusable core that both the hook and the scripts build on.
 
-- **`slop_lint.py`** exposes `lint(content, kind, tokens=None) -> list[Finding]`, where `kind` is `"html"`, `"css"`, or `"copy"`. It runs eleven regex-based rules (see the [reference](reference.md)). Each result is a `Finding(rule, severity, message, line, snippet)` with severity `"warn"` or `"info"`. The rules are deliberately grep-shaped: cheap, explainable, and resistant to false confidence.
+- **`rules.py`** holds the criterion model and the rule set's plumbing:
+  `validate_rules`, `load_rules(project_path)`, and `find_project_rules(path)`.
+  Loading never raises — it returns `(criteria, errors)` so every caller can
+  degrade to the shipped rules.
+- **`schemes.py`** executes checks. Three schemes: `regex` (a pattern plus the
+  `strip`, `within`, `absent`, and `skipIfFileMatches` modifiers), `token-pair`
+  (contrast between two token names), and `builtin` (a named Python function, for
+  the seven checks that compute rather than match).
+- **`slop_lint.py`** exposes `lint(content, kind, tokens=None, rules=None) -> list[Finding]`.
+  It is a dispatcher: it loads the merged rule set, runs each automated
+  criterion, and sorts the findings. `Finding.rule` carries the criterion
+  identifier; severity derives from the RFC 2119 level, with `must`/`must-not`
+  reporting as `warn` and `should`/`should-not` as `info`.
+- **`rules_render.py`** renders criteria into `design.md`'s managed blocks,
+  routed by each rule's `target`, and reports which blocks have drifted.
 - **`tokens.py`** exposes `parse_tokens(css) -> dict`, mapping each CSS custom property (without the leading `--`) to its declared value. This is how the linter and validator know which tokens exist.
 - **`artifact_check.py`** exposes `external_deps(content)` (any `http(s)://`, protocol-relative, `@import`, or `srcset` reference to an external host) and `undefined_var_refs(content, tokens)` (any `var(--x)` not defined in the tokens). Together they prove an artifact is self-contained and token-consistent.
 - **`contrast.py`** exposes `parse_color(value)` (hex or `rgb()`/`rgba()` to an `(r, g, b)` tuple), `relative_luminance(rgb)`, `contrast_ratio(fg, bg)` (the WCAG ratio between two colors), and `passes_aa(fg, bg, large=False)` (whether the pair clears 4.5:1, or 3.0:1 for large or UI text). This is how the review checks token pairs for accessible contrast.
@@ -27,7 +42,7 @@ Pure Python, standard library only, fully unit-tested. This is the reusable core
 
 Thin CLIs over the engine. Each inserts its own directory on `sys.path` so it resolves the engine when run standalone as `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.py`.
 
-- **`picasso_scaffold.py`** copies the template files (`tokens.css`, `components.css`, `design_system.html`, `brandbook.html`, `design.md`, `brandbook.md`, `design-instructions.md`, `demo/landing.html`) into the chosen folder, wires a managed block into `CLAUDE.md` via `upsert_managed_block`, and adds `<folder>/.picasso/` to the project's `.gitignore` (the coordinator's working state, such as the running brief and option-picker pages, lives there). It skips files that already exist unless `--force`, so re-running never clobbers your customizations.
+- **`picasso_scaffold.py`** copies the template files (`tokens.css`, `components.css`, `design_system.html`, `brandbook.html`, `design.md`, `brandbook.md`, `design-instructions.md`, `demo/landing.html`) into the chosen folder, appending a one-line `stamp_for(kind)` provenance comment to each as it is written; writes an empty `rules.json` (`{"picassoRulesVersion": "1", "rules": []}`) for the project to tune later; re-renders `design.md`'s managed rule blocks from the current rule set so a fresh scaffold starts in sync; wires a managed block into `CLAUDE.md` via `upsert_managed_block`; and adds `<folder>/.picasso/` to the project's `.gitignore` (the coordinator's working state, such as the running brief and option-picker pages, lives there). It skips files that already exist unless `--force`, so re-running never clobbers your customizations.
 - **`picasso_review.py`** walks a path (file or directory), runs `lint` plus the structural checks per file, checks the conventional token pairs for WCAG AA contrast via `contrast.py`, and prints a report grouped by file. It is advisory: it always exits 0 and never edits anything.
 
 ## The hook (`hooks/`)
