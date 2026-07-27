@@ -139,7 +139,7 @@ def test_scaffold_force_does_not_duplicate_stamps(tmp_path):
     base = tmp_path / "design-system"
     for rel in S.TEMPLATE_FILES:
         content = (base / rel).read_text(encoding="utf-8")
-        assert content.count("picasso 0.4.0") == 1, f"{rel} has a duplicated stamp"
+        assert content.count("picasso 0.5.0") == 1, f"{rel} has a duplicated stamp"
 
 def test_render_design_md_updates_stale_blocks_in_place(tmp_path):
     S.scaffold(str(tmp_path), "design-system", str(TEMPLATES))

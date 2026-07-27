@@ -11,6 +11,8 @@ Motion communicates hierarchy, feedback, or state change. If you cannot state th
 - Animate only `transform` and `opacity`; never layout properties (top, left, width, height).
 - Use the named easing tokens (`--ease-out`, `--ease-in`, `--ease-in-out`); no browser-default `ease`, no bounce or overshoot unless the aesthetic explicitly calls for it.
 - Take duration from tokens (`--duration-fast`, `--duration-base`, `--duration-slow`).
+- Reveal height with `grid-template-rows: 0fr` to `1fr`, never a `max-height` transition. A max-height animates to a guessed ceiling, so the curve applies to the guess. The `maxheight-reveal` rule flags it.
+- Press feedback depends on the control's shape: compact, self-contained controls (tabs, icon buttons, chips) scale on press via `transform: scale(var(--press-scale))` on `:active`. Wide or full-width controls (a full-bleed `.btn`) translate instead, because scaling a wide bar pulls its edges in and reads as the bar detaching from its container, not being pressed.
 - Motion claimed is motion shown: if MOTION_INTENSITY is above 4, the page actually moves (entrance, scroll-reveal, hover feedback). If you cannot ship working motion, drop the dial to 3 and ship clean static. Never half-built.
 - Ration it: at most one perpetual or marquee element per page; not every card loops. Stagger list reveals with an index-based delay.
 

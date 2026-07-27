@@ -30,3 +30,19 @@ def test_components_cover_core_classes():
 
 def test_components_no_dashes():
     assert "—" not in CSS and "–" not in CSS
+
+
+def test_press_scale_token_exists():
+    assert "press-scale" in TOKENS
+
+
+def test_button_press_feedback_translates():
+    assert "transform: translateY(1px)" in CSS
+
+
+def test_press_scale_has_a_consumer_in_components_css():
+    assert "transform: scale(var(--press-scale))" in CSS
+
+
+def test_card_and_panel_consume_the_elevation_scale():
+    assert "box-shadow: var(--shadow-sm)" in CSS

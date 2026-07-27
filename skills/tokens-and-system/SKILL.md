@@ -8,7 +8,7 @@ description: Use when authoring or editing tokens.css and design.md in a picasso
 `tokens.css` is the single source of truth. Everything else references `var(--...)`; no value is improvised elsewhere.
 
 ## Token taxonomy (Astryx-style)
-Color (roles, not raw names), Typography (families, scale, weights, tracking, leading), Spacing, Size (containers; tap target at least 44px), Shape (radii), Elevation (shadows), Motion (durations, named easings). One deliberate accent. Off-black text, never pure black. Support light and dark via `prefers-color-scheme`.
+Color (roles, not raw names), Typography (families, scale, weights, tracking, leading), Spacing, Size (containers; tap target at least 44px), Shape (radii), Elevation (layered shadows, never a single blur), Motion (durations, named easings, press scale). One deliberate accent. Off-black text, never pure black. Support light and dark via `prefers-color-scheme`.
 
 ## Locked-token discipline
 Define every color, font, space, radius, shadow, and duration as a `:root` custom property, referenced by `var()` everywhere. Inline raw hex or px is a defect the linter flags.

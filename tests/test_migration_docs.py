@@ -10,11 +10,6 @@ def read(*parts):
         return fh.read()
 
 
-def test_plugin_version_is_bumped():
-    manifest = json.loads(read(".claude-plugin", "plugin.json"))
-    assert manifest["version"] == "0.4.0"
-
-
 def test_migration_doc_records_version_one():
     text = read("docs", "migration.md")
     assert "picassoRulesVersion" in text

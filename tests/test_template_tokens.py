@@ -2,6 +2,7 @@
 from pathlib import Path
 from picasso_engine.tokens import parse_tokens
 from picasso_engine.slop_lint import lint
+from picasso_engine.schemes import SHADOW_TOKEN, top_level_layers
 
 TPL = Path(__file__).resolve().parent.parent / "templates" / "tokens.css"
 
@@ -20,7 +21,16 @@ def test_template_is_not_sloppy():
     assert "pure-black" not in rules
     assert "purple-gradient" not in rules
     assert "inline-hex" not in rules  # every hex is inside a --token: declaration
+    assert "shadow-single-layer" not in rules
 
 def test_tokens_css_no_em_or_en_dash():
     text = TPL.read_text()
     assert "—" not in text and "–" not in text
+
+def test_every_shadow_declaration_is_layered():
+    # finditer, not parse_tokens: the dict collapses the light and dark
+    # declarations of the same token name, so only the last would be checked.
+    declarations = list(SHADOW_TOKEN.finditer(TPL.read_text()))
+    assert len(declarations) == 6, "three shadows in light, three in dark"
+    for match in declarations:
+        assert top_level_layers(match.group(2)) >= 2, f"--{match.group(1)} is flat"

@@ -41,6 +41,7 @@ Some slop is mechanical and can be detected. picasso ships a linter (see the [re
 Grouped roughly by where they hide:
 
 - **Color and effects:** indigo/purple and blue/purple gradients, neon glows, gradient text on large headings, pure `#000000`, oversaturated accents.
+- **Depth and motion:** a single-blur drop shadow, which reads flat because real depth is layered; and height reveals animated through `max-height`, which run to a guessed ceiling instead of the real one.
 - **Typography:** reflexive `Inter` or a reflexive serif chosen to signal "premium," oversized screaming headlines, a random serif word inside a sans headline.
 - **Layout:** three equal rounded cards as the only feature pattern, a centered hero over a dark mesh gradient, the same zigzag section repeated, bento grids with filler cells.
 - **Micro-labels:** an eyebrow above every section, section-number labels like `01 / FEATURE`, middle-dot separators everywhere, version stamps and "scroll to explore" cues.

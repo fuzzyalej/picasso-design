@@ -136,11 +136,130 @@ def duplicate_cta(content, kind, tokens=None):
             yield 1, text
 
 
+SHADOW_TOKEN = re.compile(r"--(shadow-[A-Za-z0-9_-]*)\s*:\s*([^;{}]+)\s*[;}]")
+
+
+def top_level_layers(value: str) -> int:
+    """Count comma-separated shadow layers, ignoring commas nested in
+    parentheses. rgba(), color-mix(), and friends all contain them, which is
+    why a plain split is wrong and a regex cannot do this at all."""
+    depth = 0
+    count = 1
+    for char in value:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == "," and depth == 0:
+            count += 1
+    return count
+
+
+BARE_VAR_REFERENCE = re.compile(r"^var\(\s*--[A-Za-z0-9_-]+\s*\)$")
+
+
+def _split_top_level_casts(value: str) -> list:
+    """Split a --shadow-* value into its comma-separated casts, ignoring
+    commas nested in parentheses (rgba(), color-mix(), etc)."""
+    casts = []
+    depth = 0
+    current = []
+    for char in value:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        if char == "," and depth == 0:
+            casts.append("".join(current))
+            current = []
+        else:
+            current.append(char)
+    casts.append("".join(current))
+    return casts
+
+
+def _tokenize_cast(cast: str) -> list:
+    """Whitespace-split a single cast, treating parenthesised groups
+    (rgba(24, 24, 27, .08) has internal commas and spaces) as one token."""
+    tokens = []
+    depth = 0
+    current = ""
+    for char in cast:
+        if char == "(":
+            depth += 1
+            current += char
+        elif char == ")":
+            depth -= 1
+            current += char
+        elif char.isspace() and depth == 0:
+            if current:
+                tokens.append(current)
+                current = ""
+        else:
+            current += char
+    if current:
+        tokens.append(current)
+    return tokens
+
+
+def _cast_is_blur_zero(cast: str) -> bool:
+    """Whether a single cast has a zero blur radius.
+
+    A cast's blur is its third whitespace-separated length token, after
+    an optional leading `inset`, and before the trailing colour. Fewer
+    than three length tokens means blur was never given, which is also
+    zero. This exists because a zero-blur cast (`0 0 0 3px rgba(...)`) is
+    a focus ring or outline, not an elevation shadow, and the "stack 2-3
+    casts at increasing blur" guidance does not apply to it.
+    """
+    tokens = _tokenize_cast(cast)
+    if tokens and tokens[0].lower() == "inset":
+        tokens = tokens[1:]
+    lengths = tokens[:-1]
+    if len(lengths) < 3:
+        return True
+    return lengths[2] in ("0", "0px")
+
+
+def shadow_single_layer(content, kind, tokens=None):
+    """Flag a --shadow-* token declared as a single elevation cast.
+
+    Reads `content` rather than the `tokens` argument on purpose. That dict
+    may hold the whole project's token map, which would report tokens.css's
+    shadows while reviewing components.css. Scanning the file in hand also
+    keeps each conformance example a self-contained document, and preserves
+    the match offsets a line number needs.
+
+    Several --shadow-* declarations are not elevation casts and are exempt
+    before the layer count is even considered: a `-color` helper token, a
+    bare `var(...)` alias, a single cast that opens with `inset` (a hairline,
+    not a stack), and a value where every cast has zero blur (a focus ring).
+    """
+    for match in SHADOW_TOKEN.finditer(content):
+        name = match.group(1)
+        value = match.group(2).strip()
+        if name.endswith("-color"):
+            continue
+        if value.lower() == "none":
+            continue
+        if BARE_VAR_REFERENCE.match(value):
+            continue
+        casts = _split_top_level_casts(value)
+        if len(casts) == 1 and casts[0].strip().lower().startswith("inset"):
+            continue
+        if all(_cast_is_blur_zero(cast) for cast in casts):
+            continue
+        if len(casts) >= 2:
+            continue
+        yield content.count("\n", 0, match.start()) + 1, f"--{name}"
+
+
 BUILTINS.update({
     "purple_gradient": purple_gradient,
     "eyebrow_overuse": eyebrow_overuse,
     "grid_1fr": grid_1fr,
     "duplicate_cta": duplicate_cta,
+    "shadow_single_layer": shadow_single_layer,
 })
 
 

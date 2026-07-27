@@ -329,6 +329,60 @@
       "verification": "manual",
       "target": "hero",
       "rationale": "Subtext this long stops supporting the headline and starts restating the page below it, which is a sign the hero is trying to do the whole page's job."
+    },
+    {
+      "identifier": "shadow-single-layer",
+      "title": "Shadows are layered",
+      "statement": "A shadow token should declare at least two layers.",
+      "level": "should",
+      "category": "visual-design",
+      "verification": "automated",
+      "rationale": "One blur is a uniform smear at a single distance, so an element looks pasted onto the page rather than lifted off it.",
+      "message": "Single-layer shadow. Stack 2-3 casts at increasing blur for real depth.",
+      "check": {
+        "scheme": "builtin",
+        "name": "shadow_single_layer",
+        "kinds": ["css"]
+      },
+      "examples": [
+        {
+          "outcome": "fail",
+          "kind": "css",
+          "content": ":root{--shadow-md:0 4px 12px rgba(24,24,27,0.08);}"
+        },
+        {
+          "outcome": "pass",
+          "kind": "css",
+          "content": ":root{--shadow-md:0 1px 2px rgba(24,24,27,0.04),0 4px 8px rgba(24,24,27,0.05);}"
+        }
+      ]
+    },
+    {
+      "identifier": "maxheight-reveal",
+      "title": "Height reveals use grid rows",
+      "statement": "A height reveal should animate grid-template-rows rather than max-height.",
+      "level": "should",
+      "category": "motion",
+      "verification": "automated",
+      "rationale": "A max-height transition runs to a guessed ceiling, so the easing curve applies to the guess and the reveal finishes early or drags after the content has stopped moving.",
+      "message": "Height animated via max-height. Transition grid-template-rows from 0fr to 1fr instead.",
+      "check": {
+        "scheme": "regex",
+        "kinds": ["css", "html"],
+        "pattern": "transition(?:-property)?\\s*:[^;}]*\\bmax-height\\b"
+      },
+      "examples": [
+        {
+          "outcome": "fail",
+          "kind": "css",
+          "content": ".acc{overflow:hidden;transition:max-height 200ms ease-out;}"
+        },
+        {
+          "outcome": "pass",
+          "kind": "css",
+          "content": ".acc{display:grid;grid-template-rows:0fr;transition:grid-template-rows 200ms ease-out;}"
+        }
+      ]
     }
   ]
 }

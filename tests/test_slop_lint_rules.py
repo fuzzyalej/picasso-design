@@ -90,3 +90,28 @@ def test_flags_clickable_nonsemantic_div():
 def test_clickable_ok_with_role():
     html = '<div role="button" tabindex="0" onclick="go()">Go</div>'
     assert "clickable-nonsemantic" not in rules(lint(html, "html"))
+
+
+def test_flags_maxheight_reveal_shorthand():
+    css = ".acc{overflow:hidden;transition:max-height 200ms var(--ease-out);}"
+    assert "maxheight-reveal" in rules(lint(css, "css"))
+
+
+def test_flags_maxheight_reveal_longhand():
+    css = ".acc{transition-property: max-height, opacity;}"
+    assert "maxheight-reveal" in rules(lint(css, "css"))
+
+
+def test_flags_maxheight_reveal_in_an_inline_style_block():
+    html = "<style>.acc{transition:max-height 200ms ease-out;}</style>"
+    assert "maxheight-reveal" in rules(lint(html, "html"))
+
+
+def test_static_max_height_is_not_a_reveal():
+    css = ".acc{max-height:400px;overflow:auto;}"
+    assert "maxheight-reveal" not in rules(lint(css, "css"))
+
+
+def test_grid_rows_reveal_is_clean():
+    css = ".acc{display:grid;grid-template-rows:0fr;transition:grid-template-rows 200ms var(--ease-out);}"
+    assert "maxheight-reveal" not in rules(lint(css, "css"))

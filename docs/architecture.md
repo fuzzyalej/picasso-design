@@ -23,7 +23,9 @@ Pure Python, standard library only, fully unit-tested. This is the reusable core
 - **`schemes.py`** executes checks. Three schemes: `regex` (a pattern plus the
   `strip`, `within`, `absent`, and `skipIfFileMatches` modifiers), `token-pair`
   (contrast between two token names), and `builtin` (a named Python function, for
-  the seven checks that compute rather than match).
+  the eight checks that compute rather than match). `shadow_single_layer` is the
+  clearest case for the scheme: counting shadow layers means tracking parenthesis
+  depth, because `rgba()` carries commas, and no regex can do that.
 - **`slop_lint.py`** exposes `lint(content, kind, tokens=None, rules=None) -> list[Finding]`.
   It is a dispatcher: it loads the merged rule set, runs each automated
   criterion, and sorts the findings. `Finding.rule` carries the criterion

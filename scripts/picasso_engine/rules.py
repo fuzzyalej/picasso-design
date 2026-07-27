@@ -330,7 +330,7 @@ def load_rules(project_path: str | None = None):
     return merge(core, criteria_from(project_raw)), errors
 
 
-PLUGIN_VERSION = "0.4.0"
+PLUGIN_VERSION = "0.5.0"
 
 EMPTY_PROJECT_RULES = {
     "picassoRulesVersion": RULES_VERSION,

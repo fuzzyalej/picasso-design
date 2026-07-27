@@ -2,17 +2,19 @@
 
 ## The rule layer (`picasso_engine.rules`, `rules.py`, `rules_render.py`)
 
-The eleven original lint rules plus the four structural checks below are no
-longer hardcoded — they are data. The shipped set lives in `rules/core.json`
-(18 criteria as of this writing: 15 automated — `em-dash`, `pure-black`,
-`fake-metric`, `inline-hex`, `img-alt`, `focus-removed`,
-`clickable-nonsemantic`, `purple-gradient`, `eyebrow-overuse`, `grid-1fr`,
-`duplicate-cta`, `contrast`, `external-dep`, `undefined-token`,
-`component-use-cases` — plus 3 manual hero criteria (`hero-fits-viewport`,
-`hero-headline-lines`, `hero-subtext-length`) that carry no `check` and
-route into `design.md`'s "Review by hand" section), stamped with a
-`picassoRulesVersion`. A project can add its own `design-system/rules.json`,
-which the loader merges over core.
+What was once eleven hardcoded lint rules, plus the structural checks
+added since, is no longer hardcoded — it is data. The shipped set
+lives in `rules/core.json` (20 criteria as of this writing: 17
+automated — `em-dash`, `pure-black`, `fake-metric`, `inline-hex`,
+`img-alt`, `focus-removed`, `clickable-nonsemantic`,
+`purple-gradient`, `eyebrow-overuse`, `grid-1fr`, `duplicate-cta`,
+`contrast`, `external-dep`, `undefined-token`, `component-use-cases`,
+`shadow-single-layer`, `maxheight-reveal` — plus 3 manual hero
+criteria (`hero-fits-viewport`, `hero-headline-lines`,
+`hero-subtext-length`) that carry no `check` and route into
+`design.md`'s "Review by hand" section), stamped with a
+`picassoRulesVersion`. A project can add its own
+`design-system/rules.json`, which the loader merges over core.
 
 ### Criterion fields
 
@@ -141,7 +143,7 @@ source you would not paste a shell script from.
 
 ## Lint rules
 
-`picasso_engine.slop_lint.lint(content, kind, tokens=None, rules=None)` returns a list of `Finding(rule, severity, message, line, snippet)`. `kind` is `"html"`, `"css"`, or `"copy"` (Markdown). Rules apply per kind. The table below documents the eleven original rules; they are now criteria in `rules/core.json` rather than hardcoded, but behave identically.
+`picasso_engine.slop_lint.lint(content, kind, tokens=None, rules=None)` returns a list of `Finding(rule, severity, message, line, snippet)`. `kind` is `"html"`, `"css"`, or `"copy"` (Markdown). Rules apply per kind. The table below documents the 13 file-level lint rules from `rules/core.json`. Three more automated criteria — `contrast`, `external-dep`, and `undefined-token` — are structural checks documented in the reviewer table further down; `component-use-cases` needs a project directory rather than a single file, so it appears in neither table. The first eleven were hardcoded before the rule layer landed and behave identically as criteria.
 
 | Rule | Severity | Kinds | Flags |
 | --- | --- | --- | --- |
@@ -156,6 +158,8 @@ source you would not paste a shell script from.
 | `img-alt` | warn | html | An `<img>` with no `alt` attribute. Add alt text, or `alt=""` if decorative. |
 | `focus-removed` | warn | html, css | A bare `outline: none`/`outline: 0` with no `:focus-visible` replacement anywhere in the file. |
 | `clickable-nonsemantic` | info | html | A `div`/`span` carrying a click handler with no `role` attribute; use a real button or link, or add a role plus keyboard support. |
+| `shadow-single-layer` | info | css | A `--shadow-*` token declared as one cast. Stack 2-3 at increasing blur. |
+| `maxheight-reveal` | info | css, html | A `transition` on `max-height`. Animate `grid-template-rows` from `0fr` to `1fr`. |
 
 The `picasso_review.py` reviewer adds structural checks on top of the lint rules:
 
@@ -186,8 +190,8 @@ Pure Python WCAG contrast math, no third-party dependency.
 - **Spacing:** a 4px-based ramp.
 - **Size:** container widths and a `--size-tap` of at least 44px.
 - **Shape:** the radius scale.
-- **Elevation:** shadows.
-- **Motion:** durations and three named easings (`--ease-out`, `--ease-in`, `--ease-in-out`).
+- **Elevation:** layered shadows (`--shadow-sm`, `--shadow-md`, `--shadow-lg`), two or three casts each, overridden in dark for a near-black ground.
+- **Motion:** durations, three named easings (`--ease-out`, `--ease-in`, `--ease-in-out`), and `--press-scale` for `:active` feedback.
 
 ## The `design.md` format
 
