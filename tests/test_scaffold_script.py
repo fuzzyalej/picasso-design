@@ -5,7 +5,7 @@ from pathlib import Path
 import picasso_scaffold as S
 import picasso_review as R
 from picasso_engine.kinds import kind_for
-from picasso_engine.rules import stamp_for
+from picasso_engine.rules import PLUGIN_VERSION, stamp_for
 
 TEMPLATES = Path(__file__).resolve().parent.parent / "templates"
 SCAFFOLD_SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "picasso_scaffold.py"
@@ -139,7 +139,10 @@ def test_scaffold_force_does_not_duplicate_stamps(tmp_path):
     base = tmp_path / "design-system"
     for rel in S.TEMPLATE_FILES:
         content = (base / rel).read_text(encoding="utf-8")
-        assert content.count("picasso 0.5.0") == 1, f"{rel} has a duplicated stamp"
+        # Track PLUGIN_VERSION rather than a literal: this test is about the
+        # stamp not being written twice, not about which version wrote it.
+        assert content.count(f"picasso {PLUGIN_VERSION}") == 1, \
+            f"{rel} has a duplicated stamp"
 
 def test_render_design_md_updates_stale_blocks_in_place(tmp_path):
     S.scaffold(str(tmp_path), "design-system", str(TEMPLATES))
